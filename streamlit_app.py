@@ -151,6 +151,10 @@ with tab2:
     # Layout-Auswahl passend zur Strecke
     layoutliste = df_layouts[df_layouts["Streckenname"] == streckenauswahl]["Track Layout"].unique()
     layoutauswahl = st.selectbox("Layout wählen", layoutliste)
+    # Auto-Auswahl basierend auf vorhandenen Autos in den Rennen für das gewählte Layout
+    autos_in_layout = df_zeiten[df_zeiten["Track Layout"] == layoutauswahl]["Auto"].dropna().unique()
+    autoauswahl = st.selectbox("Auto wählen", ["Alle"] + sorted(autos_in_layout.tolist()))
+
 
     # Debug-Ausgaben – gleiche Einrückungsebene wie oben
     st.write("Ausgewähltes Layout (per Auswahlfeld):", layoutauswahl)
@@ -166,6 +170,11 @@ with tab2:
 
     # Gefilterte Renndaten
     daten = df_zeiten[df_zeiten["Track Layout"] == layoutauswahl].copy()
+    
+    # Filter für das Auto anwenden (wenn nicht "Alle")
+    if autoauswahl != "Alle":
+        daten = daten[daten["Auto"] == autoauswahl]
+
     st.write("Best Lap Rohdaten:", daten["Best Lap"].tolist())
 
     if daten.empty:
