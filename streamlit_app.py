@@ -157,8 +157,8 @@ with tab2:
 
 
     # Debug-Ausgaben – gleiche Einrückungsebene wie oben
-    st.write("Ausgewähltes Layout (per Auswahlfeld):", layoutauswahl)
-    st.write("Alle Layouts in df_zeiten:", df_zeiten["Track Layout"].unique())
+    #st.write("Ausgewähltes Layout (per Auswahlfeld):", layoutauswahl)
+    #st.write("Alle Layouts in df_zeiten:", df_zeiten["Track Layout"].unique())
 
 
    
@@ -175,7 +175,14 @@ with tab2:
     if autoauswahl != "Alle":
         daten = daten[daten["Auto"] == autoauswahl]
 
-    st.write("Best Lap Rohdaten:", daten["Best Lap"].tolist())
+    # st.write("Best Lap Rohdaten:", daten["Best Lap"].tolist())
+    # Übersichtstabelle mit relevanten Infos
+    anzeige = daten[["Race_Date", "Race_Time", "Auto", "Best Lap"]].copy()
+    anzeige = anzeige.sort_values("Race_Date", ascending=False)  # Neueste oben
+
+    st.markdown("### Rennen im Überblick")
+    st.dataframe(anzeige, use_container_width=True)
+
 
     if daten.empty:
         st.info("Keine Daten für dieses Layout gefunden.")
