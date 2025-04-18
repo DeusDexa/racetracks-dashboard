@@ -75,6 +75,7 @@ with tab1:
         if st.button("🔙 Zurück zu den Logos"):
             st.session_state["ausgewählte_strecke"] = None
             st.query_params.clear()
+            st.rerun()
 
 
 # === Tab 2: Tabellen wie bisher ===
