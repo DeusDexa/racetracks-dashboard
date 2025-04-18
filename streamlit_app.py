@@ -153,8 +153,8 @@ with tab2:
     layoutauswahl = st.selectbox("Layout wählen", layoutliste)
 
     # Debug-Ausgaben – gleiche Einrückungsebene wie oben
-    # st.write("Ausgewähltes Layout (per Auswahlfeld):", layoutauswahl)
-    # st.write("Alle Layouts in df_zeiten:", df_zeiten["Track Layout"].unique())
+    st.write("Ausgewähltes Layout (per Auswahlfeld):", layoutauswahl)
+    st.write("Alle Layouts in df_zeiten:", df_zeiten["Track Layout"].unique())
 
 
    
