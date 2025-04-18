@@ -34,10 +34,16 @@ tab1, tab2 = st.tabs(["🏁 Streckenlogos", "📊 Tabellenansicht"])
 with tab1:
     st.subheader("Streckenlogos (Klick auf Logo für Layouts)")
 
+    # Strecke merken (wenn nicht gesetzt)
     if "ausgewählte_strecke" not in st.session_state:
         st.session_state["ausgewählte_strecke"] = None
 
-    # Nur anzeigen, wenn noch keine Strecke gewählt ist
+    # Query-Parameter (z. B. durch Klick auf Logo) auswerten
+    params = st.query_params.to_dict()
+    if "ausgewählte_strecke" in params:
+        st.session_state["ausgewählte_strecke"] = params["ausgewählte_strecke"]
+
+    # Nur Logos anzeigen, wenn noch nichts gewählt wurde
     if not st.session_state["ausgewählte_strecke"]:
         columns = st.columns(3)
         for i, row in enumerate(df_track_logos.itertuples(index=False)):
@@ -53,10 +59,6 @@ with tab1:
                 )
 
     # Wenn Strecke gewählt → Layouts anzeigen
-    query_params = st.query_params.clear()
-    if "ausgewählte_strecke" in query_params:
-        st.session_state["ausgewählte_strecke"] = query_params["ausgewählte_strecke"][0]
-
     if st.session_state["ausgewählte_strecke"]:
         gewählte_strecke = st.session_state["ausgewählte_strecke"]
         st.markdown(f"---\n### Layouts für **{gewählte_strecke}**:")
@@ -69,11 +71,11 @@ with tab1:
         if len(passende_layouts) == 0:
             st.info("Keine Layouts gefunden.")
 
-            # Zurück-Button
-    if st.button("🔙 Zurück zu den Logos"):
-        st.session_state["ausgewählte_strecke"] = None
-        # Entfernt auch den URL-Parameter (optional, macht es sauberer)
-        st.query_params.clear()
+        # Zurück-Button
+        if st.button("🔙 Zurück zu den Logos"):
+            st.session_state["ausgewählte_strecke"] = None
+            st.query_params.clear()
+
 
 # === Tab 2: Tabellen wie bisher ===
 with tab2:
