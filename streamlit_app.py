@@ -184,6 +184,7 @@ with tab2:
                 return None
 
         daten["Best Lap (s)"] = daten["Best Lap"].apply(rundenzeit_in_sekunden)
+        st.write("Konvertierte Zeiten in Sekunden:", daten["Best Lap (s)"].tolist())
 
         # Nur gültige Werte behalten
         daten = daten.dropna(subset=["Race_Date", "Best Lap (s)"])
