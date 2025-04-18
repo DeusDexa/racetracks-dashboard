@@ -48,7 +48,14 @@ tab1, tab2 = st.tabs(["🏁 Streckenlogos", "📊 Tabellenansicht"])
 # TAB 1: Logos anzeigen und bei Klick zugehörige Layouts darstellen
 # ================================================================================
 with tab1:
+    # Dynamischer Titel je nach Auswahl
+if st.session_state.get("ausgewähltes_layout"):
+    st.subheader(f"Rennen auf {st.session_state['ausgewähltes_layout']}")
+elif st.session_state.get("ausgewählte_strecke"):
+    st.subheader(f"Layouts für {st.session_state['ausgewählte_strecke']}")
+else:
     st.subheader("Streckenlogos (Klick auf Logo → Layouts → Rennen)")
+
 
     # Session State initialisieren
     if "ausgewählte_strecke" not in st.session_state:
