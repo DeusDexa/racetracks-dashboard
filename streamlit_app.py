@@ -32,17 +32,34 @@ tab1, tab2 = st.tabs(["🏁 Streckenlogos", "📊 Tabellenansicht"])
 
 # === Tab 1: Grid mit Logos ===
 with tab1:
-    st.subheader("Streckenübersicht mit Logos")
+    st.subheader("Streckenlogos (Klick für Layouts)")
 
+    # Initialisiere die Session Variable für Auswahl
+    if "ausgewählte_strecke" not in st.session_state:
+        st.session_state["ausgewählte_strecke"] = None
+
+    # Zeige alle Logos als klickbare Buttons in einem 3-Spalten-Grid
     columns = st.columns(3)
 
     for i, row in enumerate(df_track_logos.itertuples(index=False)):
         with columns[i % 3]:
+            if st.button("", key=f"btn_{i}"):
+                st.session_state["ausgewählte_strecke"] = row[1]  # Streckenname
             st.image(row[3], use_container_width=True)
-            st.markdown(
-            f"<div style='height: 50px; text-align: center'><b>{row[1]}</b></div>",
-            unsafe_allow_html=True
-        ) # Streckenname
+            st.markdown(f"<div style='height: 50px; text-align: center'><b>{row[1]}</b></div>", unsafe_allow_html=True)
+
+    # Wenn eine Strecke gewählt wurde → Layouts anzeigen
+    if st.session_state["ausgewählte_strecke"]:
+        gewählte_strecke = st.session_state["ausgewählte_strecke"]
+        st.markdown(f"---\n### Layouts für **{gewählte_strecke}**:")
+
+        passende_layouts = df_layouts[df_layouts["Streckenname"] == gewählte_strecke]
+
+        for _, layout in passende_layouts.iterrows():
+            st.image(layout["Track Layout Image-Link"], caption=layout["Track Layout"], use_container_width=True)
+
+        if len(passende_layouts) == 0:
+            st.info("Keine Layouts gefunden.")
 
 # === Tab 2: Tabellen wie bisher ===
 with tab2:
