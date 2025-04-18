@@ -163,7 +163,7 @@ with tab2:
         st.info("Keine Daten für dieses Layout gefunden.")
     else:
         # Datum in echtes Format umwandeln
-        daten["Datum"] = pd.to_datetime(daten["Datum"], format="%d.%m.%Y", errors="coerce")
+        daten["Race_Date"] = pd.to_datetime(daten["Race_Date"], format="%d.%m.%Y", errors="coerce")
 
         # Bestzeit in Sekunden umwandeln
         def rundenzeit_in_sekunden(zeit):
@@ -177,12 +177,12 @@ with tab2:
         daten["Best Lap (s)"] = daten["Best Lap"].apply(rundenzeit_in_sekunden)
 
         # Nur gültige Werte behalten
-        daten = daten.dropna(subset=["Datum", "Best Lap (s)"])
+        daten = daten.dropna(subset=["Race_Date", "Best Lap (s)"])
 
         if daten.empty:
             st.info("Keine gültigen Rundenzeiten vorhanden.")
         else:
-            st.line_chart(daten.set_index("Datum")["Best Lap (s)"])
+            st.line_chart(daten.set_index("Race_Date")["Best Lap (s)"])
 
 
 
