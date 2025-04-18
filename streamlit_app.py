@@ -73,7 +73,7 @@ with tab1:
     if st.button("🔙 Zurück zu den Logos"):
         st.session_state["ausgewählte_strecke"] = None
         # Entfernt auch den URL-Parameter (optional, macht es sauberer)
-        st.experimental_set_query_params()
+        st.query_params.clear()
 
 # === Tab 2: Tabellen wie bisher ===
 with tab2:
