@@ -32,7 +32,7 @@ tab1, tab2 = st.tabs(["🏁 Streckenlogos", "📊 Tabellenansicht"])
 
 # === Tab 1: Grid mit Logos ===
 with tab1:
-    st.subheader("Streckenlogos (Klick für Layouts)")
+    st.subheader("Streckenlogos (Klick auf Logo für Layouts)")
 
     if "ausgewählte_strecke" not in st.session_state:
         st.session_state["ausgewählte_strecke"] = None
@@ -41,17 +41,23 @@ with tab1:
 
     for i, row in enumerate(df_track_logos.itertuples(index=False)):
         with columns[i % 3]:
-            # Extra Höhe & zentriert für den Button-Text
-            if st.button(row[1], key=f"btn_{i}"):
-                st.session_state["ausgewählte_strecke"] = row[1]
+            # Klickbarer Bereich mit Logo + Name
+            st.markdown(
+                f"""
+                <a href="?ausgewählte_strecke={row[1]}" style="text-decoration: none;">
+                    <img src="{row[3]}" style="width: 100%; border-radius: 4px;">
+                    <div style="text-align: center; font-weight: bold; margin-top: 8px; height: 50px;">{row[1]}</div>
+                </a>
+                """,
+                unsafe_allow_html=True
+            )
 
-            # Logo anzeigen
-            st.image(row[3], use_container_width=True)
+    # Parameter auslesen, wenn über Klick auf Logo gewählt
+    query_params = st.experimental_get_query_params()
+    if "ausgewählte_strecke" in query_params:
+        st.session_state["ausgewählte_strecke"] = query_params["ausgewählte_strecke"][0]
 
-            # Leerraum für gleichmäßige Höhe (z. B. 20px)
-            st.markdown("<div style='height: 10px'></div>", unsafe_allow_html=True)
-
-    # Layouts zur gewählten Strecke anzeigen
+    # Layouts anzeigen
     if st.session_state["ausgewählte_strecke"]:
         gewählte_strecke = st.session_state["ausgewählte_strecke"]
         st.markdown(f"---\n### Layouts für **{gewählte_strecke}**:")
