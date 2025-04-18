@@ -153,10 +153,10 @@ with tab2:
     layoutauswahl = st.selectbox("Layout wählen", layoutliste)
 
     # Test-Ausgabe
-    st.write("Ausgewähltes Layout (per Auswahlfeld):", layoutauswahl)
+     # st.write("Ausgewähltes Layout (per Auswahlfeld):", layoutauswahl)
 
     # Alle Layoutnamen in df_zeiten
-    st.write("Layoutnamen in df_zeiten:", df_zeiten["Track Layout"].unique())
+     # st.write("Layoutnamen in df_zeiten:", df_zeiten["Track Layout"].unique())
 
 
     # Strip gegen Leerzeichen-Probleme
