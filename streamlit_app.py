@@ -48,14 +48,8 @@ tab1, tab2 = st.tabs(["🏁 Streckenlogos", "📊 Tabellenansicht"])
 # TAB 1: Logos anzeigen und bei Klick zugehörige Layouts darstellen
 # ================================================================================
 with tab1:
-    # Dynamischer Titel je nach Auswahl
-    if st.session_state.get("ausgewähltes_layout"):
-        st.subheader(f"Rennen auf {st.session_state['ausgewähltes_layout']}")
-    elif st.session_state.get("ausgewählte_strecke"):
-        st.subheader(f"Layouts für {st.session_state['ausgewählte_strecke']}")
-    else:
-        st.subheader("Streckenlogos (Klick auf Logo → Layouts → Rennen)")
-
+    # --- URL-Parameter auswerten (ganz oben!) ---
+    params = st.query_params.to_dict()
 
     # Session State initialisieren
     if "ausgewählte_strecke" not in st.session_state:
@@ -63,12 +57,19 @@ with tab1:
     if "ausgewähltes_layout" not in st.session_state:
         st.session_state["ausgewähltes_layout"] = None
 
-    # URL-Parameter auswerten
-    params = st.query_params.to_dict()
+    # Session State mit Parametern füllen
     if "ausgewählte_strecke" in params:
         st.session_state["ausgewählte_strecke"] = params["ausgewählte_strecke"]
     if "ausgewähltes_layout" in params:
         st.session_state["ausgewähltes_layout"] = params["ausgewähltes_layout"]
+
+    # --- Dynamischer Header je nach Auswahl ---
+    if st.session_state["ausgewähltes_layout"]:
+        st.subheader(f"Rennen auf {st.session_state['ausgewähltes_layout']}")
+    elif st.session_state["ausgewählte_strecke"]:
+        st.subheader(f"Layouts für {st.session_state['ausgewählte_strecke']}")
+    else:
+        st.subheader("Streckenlogos (Klick auf Logo → Layouts → Rennen)")
 
     # === FALL 1: Kein Logo geklickt → Streckenlogos anzeigen ===
     if not st.session_state["ausgewählte_strecke"]:
@@ -122,7 +123,7 @@ with tab1:
         else:
             st.info("Keine Rennen auf diesem Layout gefunden.")
 
-        # Zurück zu den Layouts
+        # Zurück zu den Layouts oder Logos
         col1, col2 = st.columns(2)
         with col1:
             if st.button("🔙 Zurück zu den Layouts"):
@@ -135,6 +136,7 @@ with tab1:
                 st.session_state["ausgewähltes_layout"] = None
                 st.query_params.clear()
                 st.rerun()
+
 
 
 # ================================================================================
