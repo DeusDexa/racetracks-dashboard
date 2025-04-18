@@ -53,7 +53,7 @@ with tab1:
                 )
 
     # Wenn Strecke gewählt → Layouts anzeigen
-    query_params = st.experimental_get_query_params()
+    query_params = st.query_params.clear()
     if "ausgewählte_strecke" in query_params:
         st.session_state["ausgewählte_strecke"] = query_params["ausgewählte_strecke"][0]
 
