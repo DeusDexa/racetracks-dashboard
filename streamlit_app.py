@@ -34,19 +34,27 @@ tab1, tab2 = st.tabs(["🏁 Streckenlogos", "📊 Tabellenansicht"])
 with tab1:
     st.subheader("Streckenlogos (Klick für Layouts)")
 
-    # Initialisiere die Session Variable für Auswahl
+    # SessionState initialisieren
     if "ausgewählte_strecke" not in st.session_state:
         st.session_state["ausgewählte_strecke"] = None
 
-    # Zeige alle Logos als klickbare Buttons in einem 3-Spalten-Grid
+    # 3-Spalten-Grid
     columns = st.columns(3)
 
     for i, row in enumerate(df_track_logos.itertuples(index=False)):
         with columns[i % 3]:
-            if st.button("", key=f"btn_{i}"):
-                st.session_state["ausgewählte_strecke"] = row[1]  # Streckenname
+            # Der Button bekommt den Streckennamen als Label (invisible durch CSS)
+            if st.button(f"{row[1]}", key=f"btn_{i}"):
+                st.session_state["ausgewählte_strecke"] = row[1]
+
+            # Logo anzeigen
             st.image(row[3], use_container_width=True)
-            st.markdown(f"<div style='height: 50px; text-align: center'><b>{row[1]}</b></div>", unsafe_allow_html=True)
+
+            # Streckenname anzeigen
+            st.markdown(
+                f"<div style='height: 50px; text-align: center'><b>{row[1]}</b></div>",
+                unsafe_allow_html=True
+            )
 
     # Wenn eine Strecke gewählt wurde → Layouts anzeigen
     if st.session_state["ausgewählte_strecke"]:
