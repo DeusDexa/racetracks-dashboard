@@ -39,7 +39,10 @@ with tab1:
     for i, row in enumerate(df_track_logos.itertuples(index=False)):
         with columns[i % 3]:
             st.image(row[3], use_container_width=True)
-            st.markdown(f"**{row[1]}**")  # Streckenname
+            st.markdown(
+            f"<div style='height: 40px; text-align: center'><b>{row[1]}</b></div>",
+            unsafe_allow_html=True
+        ) # Streckenname
 
 # === Tab 2: Tabellen wie bisher ===
 with tab2:
