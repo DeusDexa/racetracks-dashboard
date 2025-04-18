@@ -66,7 +66,17 @@ with tab1:
         passende_layouts = df_layouts[df_layouts["Streckenname"] == gewählte_strecke]
 
         for _, layout in passende_layouts.iterrows():
-            st.image(layout["Track Layout Image-Link"], caption=layout["Track Layout"], use_container_width=True)
+           st.markdown(
+             f"""
+             <div style="margin-bottom: 24px;">
+                <img src="{layout['Track Layout Image-Link']}"
+                style="border: 2px solid black; border-radius: 6px; width: 100%;">
+                <div style="text-align: center; font-weight: bold; margin-top: 8px;">{layout['Track Layout']}</div>
+           </div>
+           """,
+           unsafe_allow_html=True
+       )
+
 
         if len(passende_layouts) == 0:
             st.info("Keine Layouts gefunden.")
