@@ -166,6 +166,7 @@ with tab2:
 
     # Gefilterte Renndaten
     daten = df_zeiten[df_zeiten["Track Layout"] == layoutauswahl].copy()
+    st.write("Best Lap Rohdaten:", daten["Best Lap"].tolist())
 
     if daten.empty:
         st.info("Keine Daten für dieses Layout gefunden.")
