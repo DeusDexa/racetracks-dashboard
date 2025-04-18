@@ -41,7 +41,8 @@ df_track_logos = pd.read_csv(url_track_logos)
 # ==============================
 # Tabs definieren (Navigation)
 # ==============================
-tab1, tab2 = st.tabs(["🏁 Streckenlogos", "📊 Tabellenansicht"])
+tab1, tab2, tab3 = st.tabs(["🏁 Streckenlogos", "📈 Fortschritt", "📊 Tabellenansicht"])
+
 
 
 # ================================================================================
@@ -138,11 +139,51 @@ with tab1:
                 st.rerun()
 
 
-
 # ================================================================================
-# TAB 2: Tabellenansicht aller geladenen Daten (zur Kontrolle & Übersicht)
+# TAB 2: Diagramme 
 # ================================================================================
 with tab2:
+    st.subheader("📈 Fortschritt deiner Rundenzeiten")
+
+    # Strecke wählen
+    streckenauswahl = st.selectbox("Strecke wählen", df_layouts["Streckenname"].unique())
+
+    # Layout-Auswahl auf Basis der Strecke
+    layoutliste = df_layouts[df_layouts["Streckenname"] == streckenauswahl]["Track Layout"].unique()
+    layoutauswahl = st.selectbox("Layout wählen", layoutliste)
+
+    # Daten filtern
+    daten = df_zeiten[df_zeiten["Track Layout"] == layoutauswahl].copy()
+
+    # Datum umwandeln
+    daten["Datum"] = pd.to_datetime(daten["Datum"], format="%d.%m.%Y", errors="coerce")
+
+    # Best Lap umwandeln in Sekunden (von "mm:ss,SSS")
+    def rundenzeit_in_sekunden(zeit):
+        try:
+            m, s = zeit.split(":")
+            s, ms = s.split(",")
+            return int(m) * 60 + int(s) + int(ms) / 1000
+        except:
+            return None
+
+    daten["Best Lap (s)"] = daten["Best Lap"].apply(rundenzeit_in_sekunden)
+
+    # Nur gültige Werte
+    daten = daten.dropna(subset=["Datum", "Best Lap (s)"])
+
+    if daten.empty:
+        st.info("Keine gültigen Daten für dieses Layout vorhanden.")
+    else:
+        st.line_chart(daten.set_index("Datum")["Best Lap (s)"])
+
+
+
+
+# ================================================================================
+# TAB 3: Tabellenansicht aller geladenen Daten (zur Kontrolle & Übersicht)
+# ================================================================================
+with tab3:
     st.subheader("Zeiten")
     st.dataframe(df_zeiten)
 
