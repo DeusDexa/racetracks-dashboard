@@ -78,7 +78,7 @@ with tab1:
             with columns[i % 3]:
                 st.markdown(
                     f"""
-                    <a href="?ausgewählte_strecke={row[1]}" style="text-decoration: none;">
+                    <a href="?ausgewählte_strecke={row[1]}" target="_self" style="text-decoration: none;">
                         <img src="{row[3]}" style="width: 100%; border-radius: 4px;">
                         <div style="text-align: center; font-weight: bold; margin-top: 8px; height: 50px;">{row[1]}</div>
                     </a>
@@ -89,14 +89,14 @@ with tab1:
     # === FALL 2: Strecke gewählt, aber noch kein Layout → Layout-Übersicht ===
     elif st.session_state["ausgewählte_strecke"] and not st.session_state["ausgewähltes_layout"]:
         gewählte_strecke = st.session_state["ausgewählte_strecke"]
-        st.markdown(f"---\n### Layouts für **{gewählte_strecke}**:")
+        # st.markdown(f"---\n### Layouts für **{gewählte_strecke}**:")
 
         passende_layouts = df_layouts[df_layouts["Streckenname"] == gewählte_strecke]
 
         for _, layout in passende_layouts.iterrows():
             st.markdown(
                 f"""
-                <a href="?ausgewählte_strecke={gewählte_strecke}&ausgewähltes_layout={layout['Track Layout']}" style="text-decoration: none;">
+                <a href="?ausgewählte_strecke={gewählte_strecke}&ausgewähltes_layout={layout['Track Layout']}" target="_self"  style="text-decoration: none;">
                     <img src="{layout['Track Layout Image-Link']}"
                          style="border: 2px solid black; border-radius: 6px; width: 100%;">
                     <div style="text-align: center; font-weight: bold; margin-top: 8px;">{layout['Track Layout']}</div>
@@ -114,7 +114,7 @@ with tab1:
     # === FALL 3: Layout gewählt → Rennen anzeigen ===
     elif st.session_state["ausgewähltes_layout"]:
         layoutname = st.session_state["ausgewähltes_layout"]
-        st.markdown(f"---\n### Rennen auf **{layoutname}**")
+        # st.markdown(f"---\n### Rennen auf **{layoutname}**")
 
         passende_rennen = df_zeiten[df_zeiten["Track Layout"] == layoutname]
 
