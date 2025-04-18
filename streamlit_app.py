@@ -37,27 +37,26 @@ with tab1:
     if "ausgewählte_strecke" not in st.session_state:
         st.session_state["ausgewählte_strecke"] = None
 
-    columns = st.columns(3)
+    # Nur anzeigen, wenn noch keine Strecke gewählt ist
+    if not st.session_state["ausgewählte_strecke"]:
+        columns = st.columns(3)
+        for i, row in enumerate(df_track_logos.itertuples(index=False)):
+            with columns[i % 3]:
+                st.markdown(
+                    f"""
+                    <a href="?ausgewählte_strecke={row[1]}" style="text-decoration: none;">
+                        <img src="{row[3]}" style="width: 100%; border-radius: 4px;">
+                        <div style="text-align: center; font-weight: bold; margin-top: 8px; height: 50px;">{row[1]}</div>
+                    </a>
+                    """,
+                    unsafe_allow_html=True
+                )
 
-    for i, row in enumerate(df_track_logos.itertuples(index=False)):
-        with columns[i % 3]:
-            # Klickbarer Bereich mit Logo + Name
-            st.markdown(
-                f"""
-                <a href="?ausgewählte_strecke={row[1]}" style="text-decoration: none;">
-                    <img src="{row[3]}" style="width: 100%; border-radius: 4px;">
-                    <div style="text-align: center; font-weight: bold; margin-top: 8px; height: 50px;">{row[1]}</div>
-                </a>
-                """,
-                unsafe_allow_html=True
-            )
-
-    # Parameter auslesen, wenn über Klick auf Logo gewählt
+    # Wenn Strecke gewählt → Layouts anzeigen
     query_params = st.experimental_get_query_params()
     if "ausgewählte_strecke" in query_params:
         st.session_state["ausgewählte_strecke"] = query_params["ausgewählte_strecke"][0]
 
-    # Layouts anzeigen
     if st.session_state["ausgewählte_strecke"]:
         gewählte_strecke = st.session_state["ausgewählte_strecke"]
         st.markdown(f"---\n### Layouts für **{gewählte_strecke}**:")
@@ -69,6 +68,12 @@ with tab1:
 
         if len(passende_layouts) == 0:
             st.info("Keine Layouts gefunden.")
+
+            # Zurück-Button
+    if st.button("🔙 Zurück zu den Logos"):
+        st.session_state["ausgewählte_strecke"] = None
+        # Entfernt auch den URL-Parameter (optional, macht es sauberer)
+        st.experimental_set_query_params()
 
 # === Tab 2: Tabellen wie bisher ===
 with tab2:
