@@ -177,11 +177,15 @@ with tab2:
         # Bestzeit in Sekunden umwandeln
         def rundenzeit_in_sekunden(zeit):
             try:
-                m, s = zeit.split(":")
-                s, ms = s.split(",")
-                return int(m) * 60 + int(s) + int(ms) / 1000
-            except:
+                if not isinstance(zeit, str):
+                    return None
+                zeit = zeit.strip()
+                h, m, sec_ms = zeit.split(":")
+                sec, ms = sec_ms.split(",")
+                return int(h) * 3600 + int(m) * 60 + int(sec) + int(ms) / 1000
+            except Exception as e:
                 return None
+
 
         daten["Best Lap (s)"] = daten["Best Lap"].apply(rundenzeit_in_sekunden)
         st.write("Konvertierte Zeiten in Sekunden:", daten["Best Lap (s)"].tolist())
