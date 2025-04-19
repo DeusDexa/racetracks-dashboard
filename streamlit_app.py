@@ -4,7 +4,7 @@ import pandas as pd
 # ==============================
 # App-Titel
 # ==============================
-st.image("https://imgur.com/CzaF31B", use_container_width=True)
+st.image("https://i.imgur.com/CzaF31B.png", use_container_width=True)
 # st.title("Racetracks Dashboard")
 
 # ==============================
