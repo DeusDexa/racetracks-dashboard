@@ -4,7 +4,8 @@ import pandas as pd
 # ==============================
 # App-Titel
 # ==============================
-st.title("Racetracks Dashboard")
+st.image("https://imgur.com/CzaF31B", use_column_width=True)
+# st.title("Racetracks Dashboard")
 
 # ==============================
 # Google Sheet ID
