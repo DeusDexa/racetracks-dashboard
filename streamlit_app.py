@@ -8,9 +8,6 @@ st.markdown("""
         font-family: 'Segoe UI', sans-serif;
         color: #222;
     }
-    #.block-container {
-    #    padding-top: 2rem;
-    }
     </style>
 """, unsafe_allow_html=True)
 
