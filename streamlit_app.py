@@ -8,8 +8,11 @@ from tab2_diagramme import render_tab2
 from tab3_autos import render_tab3
 from tab4_tabellen import render_tab4
 
+
 st.set_page_config(page_title="Racetracks Dashboard", layout="wide")
 st.title("Racetracks Dashboard")
+# Optional: Header-Grafik
+st.image("https://i.imgur.com/CzaF31B.png", use_container_width=True)
 
 # === Google Sheet ID ===
 sheet_id = "173F858oAFPScHVfa4lrr38LDbd1mJumTraUKOz3bvdk"
