@@ -1,6 +1,19 @@
 import streamlit as st
 import pandas as pd
 
+# Optionales Styling
+st.markdown("""
+    <style>
+    body, div, h1, h2, h3, h4, p {
+        font-family: 'Segoe UI', sans-serif;
+        color: #222;
+    }
+    .block-container {
+        padding-top: 2rem;
+    }
+    </style>
+""", unsafe_allow_html=True)
+
 
 # ==============================
 # App-Titel
