@@ -254,7 +254,6 @@ with tab2:
             st.line_chart(daten.set_index("Race_Date")["Best Lap (s)"])
 
 
-
 # ================================================================================
 # TAB 3: Fahrzeugübersicht mit Filter, Bild und Streckeninfo
 # ================================================================================
@@ -281,10 +280,16 @@ with tab3:
     df_autos_stats = df_autos_stats.sort_values("Rennen", ascending=False)
 
     # === Filter anwenden ===
+    gefiltert = klasse_filter != "Alle" or hersteller_filter != "Alle"
     if klasse_filter != "Alle":
         df_autos_stats = df_autos_stats[df_autos_stats["klasse"] == klasse_filter]
     if hersteller_filter != "Alle":
         df_autos_stats = df_autos_stats[df_autos_stats["Hersteller"] == hersteller_filter]
+
+    # === Bei "Alle" → nur Top 5 zeigen
+    if not gefiltert:
+        df_autos_stats = df_autos_stats.head(5)
+        st.info("Zeige die 5 meistgefahrenen Fahrzeuge. Du kannst mit den Filtern gezielt eingrenzen.")
 
     # === Darstellung ===
     for _, auto in df_autos_stats.iterrows():
