@@ -43,7 +43,7 @@ df_track_logos = pd.read_csv(url_track_logos)
 # ==============================
 # Tabs definieren (Navigation)
 # ==============================
-tab1, tab2, tab3, tab4 = st.tabs(["🏁 Streckenlogos", "📈 Fortschritt", "🚗 Fahrzeuge", "📊 Tabellenansicht"])
+tab1, tab2, tab3, tab4 = st.tabs(["🏁 Rennstrecken", "📈 Fortschritt", "🚗 Fahrzeuge", "📊 Tabellenansicht"])
 
 
 
@@ -134,7 +134,7 @@ with tab1:
                 st.query_params.clear()
                 st.rerun()
         with col2:
-            if st.button("🏁 Zurück zu den Logos"):
+            if st.button("🏁 Zurück zu den Strecken"):
                 st.session_state["ausgewählte_strecke"] = None
                 st.session_state["ausgewähltes_layout"] = None
                 st.query_params.clear()
