@@ -145,7 +145,7 @@ with tab1:
 # TAB 2: Diagramme 
 # ================================================================================
 with tab2:
-    st.subheader("📈 Fortschritt deiner Rundenzeiten")
+    st.subheader("📈 Fortschritt der Rundenzeiten")
 
     # Strecke auswählen
     streckenauswahl = st.selectbox("Strecke wählen", df_layouts["Streckenname"].unique())
@@ -229,10 +229,8 @@ with tab3:
     hersteller = sorted(df_autos["Hersteller"].dropna().unique().tolist())
 
     filter_col1, filter_col2 = st.columns(2)
-
     with filter_col1:
         klasse_filter = st.selectbox("Klasse wählen", ["Alle"] + klassen)
-
     with filter_col2:
         hersteller_filter = st.selectbox("Hersteller wählen", ["Alle"] + hersteller)
 
@@ -265,13 +263,21 @@ with tab3:
         with cols[1]:
             st.markdown(f"**{auto['Auto']}**  |  **Rennen:** {auto['Rennen']}")
 
-            # Layouts ermitteln, auf denen dieses Auto eingesetzt wurde
-            layout_liste = df_zeiten[df_zeiten["Auto"] == auto["Auto"]]["Track Layout"].unique().tolist()
-            for i in range(3):
-                if i < len(layout_liste):
-                    st.markdown(f"- {layout_liste[i]}")
-                else:
-                    st.markdown("&nbsp;")  # Leerzeile falls weniger als 3 Layouts
+            # Layouts + Bestzeiten ermitteln
+            rennen_mit_auto = df_zeiten[df_zeiten["Auto"] == auto["Auto"]]
+            layout_gruppen = rennen_mit_auto.groupby("Track Layout")
+
+            # Sortiere nach Häufigkeit der Layouts, nimm max. 3
+            meist_gefahrene_layouts = layout_gruppen.size().sort_values(ascending=False).head(3).index.tolist()
+
+            for layout in meist_gefahrene_layouts:
+                zeiten = rennen_mit_auto[rennen_mit_auto["Track Layout"] == layout]["Best Lap"]
+                bestzeit = zeiten.min() if not zeiten.empty else "--"
+                st.markdown(f"- {layout}  _(Bestzeit: {bestzeit})_")
+
+            # Weniger als 3 Layouts? Leere Zeilen einfügen
+            for _ in range(3 - len(meist_gefahrene_layouts)):
+                st.markdown("&nbsp;")
 
         st.markdown("\n")
 
