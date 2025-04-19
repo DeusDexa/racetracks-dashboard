@@ -228,8 +228,13 @@ with tab3:
     klassen = sorted(df_autos["klasse"].dropna().unique().tolist())
     hersteller = sorted(df_autos["Hersteller"].dropna().unique().tolist())
 
-    klasse_filter = st.selectbox("Klasse wählen", ["Alle"] + klassen)
-    hersteller_filter = st.selectbox("Hersteller wählen", ["Alle"] + hersteller)
+    filter_col1, filter_col2 = st.columns(2)
+
+    with filter_col1:
+        klasse_filter = st.selectbox("Klasse wählen", ["Alle"] + klassen)
+
+    with filter_col2:
+        hersteller_filter = st.selectbox("Hersteller wählen", ["Alle"] + hersteller)
 
     # === Daten verknüpfen: Autos + Zeiten ===
     df_autos_stats = df_autos.copy()
