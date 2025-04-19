@@ -1,24 +1,6 @@
 import streamlit as st
 import pandas as pd
 
-st.markdown(
-    """
-    <style>
-        [data-testid="stAppViewContainer"]::before {
-            content: "";
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 0;
-            height: 0;
-            background-image: url('https://i.imgur.com/tHxDEFy.png');  /* Hier dein Favicon-Link */
-            background-size: contain;
-        }
-    </style>
-    """,
-    unsafe_allow_html=True
-)
-
 
 # ==============================
 # App-Titel
@@ -61,7 +43,7 @@ df_track_logos = pd.read_csv(url_track_logos)
 # ==============================
 # Tabs definieren (Navigation)
 # ==============================
-tab1, tab2, tab3 = st.tabs(["🏁 Streckenlogos", "📈 Fortschritt", "📊 Tabellenansicht"])
+tab1, tab2, tab3, tab4 = st.tabs(["🏁 Streckenlogos", "📈 Fortschritt", "🚗 Fahrzeuge", "📊 Tabellenansicht"])
 
 
 
@@ -236,13 +218,64 @@ with tab2:
 
 
 
-
-
-
 # ================================================================================
-# TAB 3: Tabellenansicht aller geladenen Daten (zur Kontrolle & Übersicht)
+# TAB 3: Fahrzeugübersicht mit Filter, Bild und Streckeninfo
 # ================================================================================
 with tab3:
+    st.subheader("🚗 Fahrzeuge und ihre Einsätze")
+
+    # === Filter: Klasse & Hersteller ===
+    klassen = sorted(df_autos["klasse"].dropna().unique().tolist())
+    hersteller = sorted(df_autos["Hersteller"].dropna().unique().tolist())
+
+    klasse_filter = st.selectbox("Klasse wählen", ["Alle"] + klassen)
+    hersteller_filter = st.selectbox("Hersteller wählen", ["Alle"] + hersteller)
+
+    # === Daten verknüpfen: Autos + Zeiten ===
+    df_autos_stats = df_autos.copy()
+    df_autos_stats["Rennen"] = df_autos_stats["Auto"].apply(
+        lambda car: (df_zeiten["Auto"] == car).sum()
+    )
+
+    # === Optional: Nach meistgefahren sortieren ===
+    df_autos_stats = df_autos_stats.sort_values("Rennen", ascending=False)
+
+    # === Filter anwenden ===
+    if klasse_filter != "Alle":
+        df_autos_stats = df_autos_stats[df_autos_stats["klasse"] == klasse_filter]
+    if hersteller_filter != "Alle":
+        df_autos_stats = df_autos_stats[df_autos_stats["Hersteller"] == hersteller_filter]
+
+    # === Darstellung ===
+    for _, auto in df_autos_stats.iterrows():
+        st.markdown("---")
+        cols = st.columns([1, 2])
+
+        # Bild links
+        with cols[0]:
+            if pd.notna(auto["Car_Image"]):
+                st.image(auto["Car_Image"], use_container_width=True)
+
+        # Text rechts
+        with cols[1]:
+            st.markdown(f"**{auto['Auto']}**  |  **Rennen:** {auto['Rennen']}")
+
+            # Layouts ermitteln, auf denen dieses Auto eingesetzt wurde
+            layout_liste = df_zeiten[df_zeiten["Auto"] == auto["Auto"]]["Track Layout"].unique().tolist()
+            for i in range(3):
+                if i < len(layout_liste):
+                    st.markdown(f"- {layout_liste[i]}")
+                else:
+                    st.markdown("&nbsp;")  # Leerzeile falls weniger als 3 Layouts
+
+        st.markdown("\n")
+
+
+
+# ================================================================================
+# TAB 4: Tabellenansicht aller geladenen Daten (zur Kontrolle & Übersicht)
+# ================================================================================
+with tab4:
     st.subheader("Zeiten")
     st.dataframe(df_zeiten)
 
