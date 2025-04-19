@@ -1,6 +1,25 @@
 import streamlit as st
 import pandas as pd
 
+st.markdown(
+    """
+    <style>
+        [data-testid="stAppViewContainer"]::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 0;
+            height: 0;
+            background-image: url('https://i.imgur.com/tHxDEFy.png');  /* Hier dein Favicon-Link */
+            background-size: contain;
+        }
+    </style>
+    """,
+    unsafe_allow_html=True
+)
+
+
 # ==============================
 # App-Titel
 # ==============================
