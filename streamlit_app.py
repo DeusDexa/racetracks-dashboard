@@ -140,6 +140,43 @@ with tab1:
                 st.query_params.clear()
                 st.rerun()
 
+# ================================================================================
+# ERWEITERUNG: Fahrzeuge unter Renntabelle im Layout-Detail (Tab 1)
+# ================================================================================
+        # Fahrzeuge, die auf diesem Layout gefahren wurden (aus TAB 1)
+        if "ausgewähltes_layout" in st.session_state:
+            layout_filter = st.session_state["ausgewähltes_layout"]
+            autos_auf_layout = df_zeiten[df_zeiten["Track Layout"] == layout_filter]["Auto"].unique().tolist()
+            df_autos_auf_layout = df_autos[df_autos["Auto"].isin(autos_auf_layout)]
+
+            st.subheader(f"🚗 Fahrzeuge auf '{layout_filter}'")
+
+            for _, auto in df_autos_auf_layout.iterrows():
+                st.markdown("---")
+                cols = st.columns([1, 2])
+
+                with cols[0]:
+                    if pd.notna(auto["Car_Image"]):
+                        st.image(auto["Car_Image"], use_container_width=True)
+
+                with cols[1]:
+                    st.markdown(f"**{auto['Auto']}**  |  **Hersteller:** {auto['Hersteller']}  |  **Klasse:** {auto['klasse']}")
+
+                    # Anzahl Rennen + Bestzeit auf diesem Layout
+                    rennen = df_zeiten[(df_zeiten["Auto"] == auto["Auto"]) & (df_zeiten["Track Layout"] == layout_filter)]
+                    st.markdown(f"Rennen: {len(rennen)}")
+
+                    # Bestzeit berechnen
+                    bestzeit = rennen["Best Lap"].min() if not rennen.empty else "--"
+                    st.markdown(f"Bestzeit: {bestzeit}")
+
+                    # Dummy: Liste anzeigen (falls gewünscht)
+                    layout_liste = rennen["Track Layout"].unique().tolist()
+                    for i in range(3):
+                        if i < len(layout_liste):
+                            st.markdown(f"- {layout_liste[i]}")
+                        else:
+                            st.markdown("&nbsp;")
 
 # ================================================================================
 # TAB 2: Diagramme 
