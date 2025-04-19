@@ -4,12 +4,25 @@ import pandas as pd
 # Optionales Styling
 st.markdown("""
     <style>
+    /* Schriftart & Standardfarbe */
     body, div, h1, h2, h3, h4, p {
         font-family: 'Segoe UI', sans-serif;
-        color: #222;
+        color: #222 !important;
+    }
+
+    /* Hintergrund hell erzwingen, auch bei Dark Mode */
+    html, body, [data-testid="stAppViewContainer"] {
+        background-color: white !important;
+        color: #222 !important;
+    }
+
+    /* Optional: Leichter Innenabstand oben */
+    .block-container {
+        padding-top: 1rem;
     }
     </style>
 """, unsafe_allow_html=True)
+
 
 
 # ==============================
