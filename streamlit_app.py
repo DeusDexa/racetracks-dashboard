@@ -120,15 +120,25 @@ with tab1:
         # === RECHTS: Anzahl Rennen pro Strecke ===
         with col2:
             st.markdown("#### Anzahl Rennen pro Strecke")
-
-            rennen_pro_strecke = df_zeiten["Streckenname"].value_counts().reset_index()
-            rennen_pro_strecke.columns = ["Strecke", "Rennen"]
-
+        
+            # Schritt 1: Anzahl Rennen pro Layout zählen
+            rennen_pro_layout = df_zeiten["Track Layout"].value_counts().reset_index()
+            rennen_pro_layout.columns = ["Track Layout", "Rennen"]
+        
+            # Schritt 2: Layouts mit Streckennamen verknüpfen
+            layout_mit_strecke = pd.merge(rennen_pro_layout, df_layouts[["Track Layout", "Streckenname"]],
+                                           on="Track Layout", how="left")
+        
+            # Schritt 3: Rennen pro Strecke aggregieren
+            rennen_pro_strecke = layout_mit_strecke.groupby("Streckenname")["Rennen"].sum().reset_index()
+            rennen_pro_strecke = rennen_pro_strecke.sort_values("Rennen", ascending=False)
+        
+            # Schritt 4: Anzeige als DataFrame mit Balken
             st.dataframe(
                 rennen_pro_strecke,
                 hide_index=True,
                 column_config={
-                    "Strecke": st.column_config.TextColumn("Strecke"),
+                    "Streckenname": st.column_config.TextColumn("Strecke"),
                     "Rennen": st.column_config.ProgressColumn(
                         "Rennen",
                         format="%d",
