@@ -404,22 +404,9 @@ with tab3:
 # ================================================================================
 with tab4:
     st.subheader("Zeiten")
-    st.dataframe(df_zeiten)  
+    st.dataframe(df_zeiten)   
 
-    st.subheader("Autos")
-    st.dataframe(df_autos)
-
-    st.subheader("Racetype")
-    st.dataframe(df_racetype)
-
-    st.subheader("Layouts")
-    st.dataframe(df_layouts)
-
-    st.subheader("Track Logos")
-    st.dataframe(df_track_logos)
-
-
-
+    
     with st.expander("🧪 Custom EDA für 'Zeiten'"):
 
         st.markdown("### 🧬 Datentypen")
@@ -440,20 +427,19 @@ with tab4:
             st.markdown(f"**{col}**")
             st.bar_chart(df_zeiten[col].dropna())
 
-        st.markdown("### ⏱️ Zeitspalte 'Best Lap' analysieren (falls vorhanden)")
-        if "Best Lap" in df_zeiten.columns:
-            def parse_best_lap(zeit):
-                try:
-                    zeit = str(zeit).strip()
-                    m, rest = zeit.split(":")
-                    s, ms = rest.split(",")
-                    return int(m) * 60 + int(s) + int(ms) / 1000
-                except:
-                    return None
+    st.subheader("Autos")
+    st.dataframe(df_autos)
 
-            df_zeiten["Best Lap (s)"] = df_zeiten["Best Lap"].apply(parse_best_lap)
-            st.write("Min:", df_zeiten["Best Lap (s)"].min())
-            st.write("Max:", df_zeiten["Best Lap (s)"].max())
-            st.write("Mean:", df_zeiten["Best Lap (s)"].mean())
+    st.subheader("Racetype")
+    st.dataframe(df_racetype)
 
-            st.bar_chart(df_zeiten["Best Lap (s)"].dropna())
+    st.subheader("Layouts")
+    st.dataframe(df_layouts)
+
+    st.subheader("Track Logos")
+    st.dataframe(df_track_logos)
+
+
+
+
+      
