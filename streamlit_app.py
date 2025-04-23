@@ -277,55 +277,55 @@ with tab2:
         else:
             st.line_chart(daten.set_index("Race_Date")["Best Lap (s)"])
 
-st.markdown("## Rennen als Balkendiagramm")
+    st.markdown("## Rennen als Balkendiagramm")
 
-# Auswahl eines Streckenlayouts
-layoutliste = df_layouts["Track Layout"].dropna().unique()
-layoutauswahl = st.selectbox("Wähle ein Layout", sorted(layoutliste))
+    # Auswahl eines Streckenlayouts
+    layoutliste = df_layouts["Track Layout"].dropna().unique()
+    layoutauswahl = st.selectbox("Wähle ein Layout", sorted(layoutliste))
 
-# Daten bereinigen & filtern
-df_zeiten["Best Lap"] = df_zeiten["Best Lap"].astype(str)
+    # Daten bereinigen & filtern
+    df_zeiten["Best Lap"] = df_zeiten["Best Lap"].astype(str)
 
-def parse_best_lap(zeit):
-    try:
-        zeit = str(zeit).strip()
-        minuten, rest = zeit.split(":")
-        sekunden, millis = rest.split(",")
-        return int(minuten) * 60 + int(sekunden) + int(millis) / 1000
-    except:
-        return None
+    def parse_best_lap(zeit):
+        try:
+            zeit = str(zeit).strip()
+            minuten, rest = zeit.split(":")
+            sekunden, millis = rest.split(",")
+            return int(minuten) * 60 + int(sekunden) + int(millis) / 1000
+        except:
+            return None
 
-df_zeiten["Best Lap (s)"] = df_zeiten["Best Lap"].apply(parse_best_lap)
-df_zeiten["Track Layout"] = df_zeiten["Track Layout"].astype(str).str.strip()
+    df_zeiten["Best Lap (s)"] = df_zeiten["Best Lap"].apply(parse_best_lap)
+    df_zeiten["Track Layout"] = df_zeiten["Track Layout"].astype(str).str.strip()
 
-# Gefilterte Daten
-daten = df_zeiten[df_zeiten["Track Layout"] == layoutauswahl].copy()
-daten["Auto"] = daten["Auto"].fillna("Unbekannt")
+    # Gefilterte Daten
+    daten = df_zeiten[df_zeiten["Track Layout"] == layoutauswahl].copy()
+    daten["Auto"] = daten["Auto"].fillna("Unbekannt")
 
-# Auswahl: Autos filtern
-verfügbare_autos = sorted(daten["Auto"].unique())
-auto_filter = st.multiselect("Fahrzeuge filtern", verfügbare_autos, default=verfügbare_autos)
+    # Auswahl: Autos filtern
+    verfügbare_autos = sorted(daten["Auto"].unique())
+    auto_filter = st.multiselect("Fahrzeuge filtern", verfügbare_autos, default=verfügbare_autos)
 
-daten = daten[daten["Auto"].isin(auto_filter)].copy()
+    daten = daten[daten["Auto"].isin(auto_filter)].copy()
 
-# Laufnummer für gleichmäßige X-Achse
-daten = daten.sort_values("Race_Date")
-daten["Rennlauf"] = range(1, len(daten) + 1)
+    # Laufnummer für gleichmäßige X-Achse
+    daten = daten.sort_values("Race_Date")
+    daten["Rennlauf"] = range(1, len(daten) + 1)
 
-# Anzeige prüfen
-if daten.empty:
-    st.info("Keine Rennen für dieses Layout und diese Fahrzeugauswahl gefunden.")
-else:
-    import altair as alt
+    # Anzeige prüfen
+    if daten.empty:
+        st.info("Keine Rennen für dieses Layout und diese Fahrzeugauswahl gefunden.")
+    else:
+        import altair as alt
 
-    chart = alt.Chart(daten).mark_bar().encode(
-        x=alt.X("Rennlauf:O", title="Rennen (chronologisch)", sort=None),
-        y=alt.Y("Best Lap (s):Q", title="Bestzeit in Sekunden"),
-        color=alt.Color("Auto:N", title="Fahrzeug"),
-        tooltip=["Race_Date", "Auto", "Best Lap"]
-    ).properties(width=800, height=400)
+        chart = alt.Chart(daten).mark_bar().encode(
+            x=alt.X("Rennlauf:O", title="Rennen (chronologisch)", sort=None),
+            y=alt.Y("Best Lap (s):Q", title="Bestzeit in Sekunden"),
+            color=alt.Color("Auto:N", title="Fahrzeug"),
+            tooltip=["Race_Date", "Auto", "Best Lap"]
+        ).properties(width=800, height=400)
 
-    st.altair_chart(chart, use_container_width=True)
+        st.altair_chart(chart, use_container_width=True)
 
 
 # ================================================================================
@@ -420,40 +420,40 @@ with tab4:
 
 
 
-with st.expander("🧪 Custom EDA für 'Zeiten'"):
+    with st.expander("🧪 Custom EDA für 'Zeiten'"):
 
-    st.markdown("### 🧬 Datentypen")
-    st.write(df_zeiten.dtypes)
+        st.markdown("### 🧬 Datentypen")
+        st.write(df_zeiten.dtypes)
 
-    st.markdown("### 🔝 Top-Werte (ausgewählte Kategorien)")
+        st.markdown("### 🔝 Top-Werte (ausgewählte Kategorien)")
 
-    auswahl_spalten = ["Auto", "Track Layout", "Rennen", "Typ", "Klasse"]
-    vorhandene_spalten = [col for col in auswahl_spalten if col in df_zeiten.columns]
+        auswahl_spalten = ["Auto", "Track Layout", "Rennen", "Typ", "Klasse"]
+        vorhandene_spalten = [col for col in auswahl_spalten if col in df_zeiten.columns]
 
-    for col in vorhandene_spalten:
-        st.markdown(f"**{col}**")
-        st.write(df_zeiten[col].value_counts().head(5))
+        for col in vorhandene_spalten:
+            st.markdown(f"**{col}**")
+            st.write(df_zeiten[col].value_counts().head(5))
 
-    st.markdown("### 📊 Histogramme numerischer Spalten")
-    numerisch = df_zeiten.select_dtypes(include=["number"]).columns.tolist()
-    for col in numerisch:
-        st.markdown(f"**{col}**")
-        st.bar_chart(df_zeiten[col].dropna())
+        st.markdown("### 📊 Histogramme numerischer Spalten")
+        numerisch = df_zeiten.select_dtypes(include=["number"]).columns.tolist()
+        for col in numerisch:
+            st.markdown(f"**{col}**")
+            st.bar_chart(df_zeiten[col].dropna())
 
-    st.markdown("### ⏱️ Zeitspalte 'Best Lap' analysieren (falls vorhanden)")
-    if "Best Lap" in df_zeiten.columns:
-        def parse_best_lap(zeit):
-            try:
-                zeit = str(zeit).strip()
-                m, rest = zeit.split(":")
-                s, ms = rest.split(",")
-                return int(m) * 60 + int(s) + int(ms) / 1000
-            except:
-                return None
+        st.markdown("### ⏱️ Zeitspalte 'Best Lap' analysieren (falls vorhanden)")
+        if "Best Lap" in df_zeiten.columns:
+            def parse_best_lap(zeit):
+                try:
+                    zeit = str(zeit).strip()
+                    m, rest = zeit.split(":")
+                    s, ms = rest.split(",")
+                    return int(m) * 60 + int(s) + int(ms) / 1000
+                except:
+                    return None
 
-        df_zeiten["Best Lap (s)"] = df_zeiten["Best Lap"].apply(parse_best_lap)
-        st.write("Min:", df_zeiten["Best Lap (s)"].min())
-        st.write("Max:", df_zeiten["Best Lap (s)"].max())
-        st.write("Mean:", df_zeiten["Best Lap (s)"].mean())
+            df_zeiten["Best Lap (s)"] = df_zeiten["Best Lap"].apply(parse_best_lap)
+            st.write("Min:", df_zeiten["Best Lap (s)"].min())
+            st.write("Max:", df_zeiten["Best Lap (s)"].max())
+            st.write("Mean:", df_zeiten["Best Lap (s)"].mean())
 
-        st.bar_chart(df_zeiten["Best Lap (s)"].dropna())
+            st.bar_chart(df_zeiten["Best Lap (s)"].dropna())
