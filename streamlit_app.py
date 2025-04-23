@@ -135,7 +135,7 @@ with tab1:
             chart = alt.Chart(rennen_pro_strecke).mark_bar().encode(
                 x=alt.X("Rennen:Q", title="Rennen"),
                 #y=alt.Y("Streckenname:N", sort='-x', title="Strecke"),
-                y=alt.Y("Streckenname:N", sort='-x', title="Strecke", axis=alt.Axis(labelAlign="left", labelAngle=0)),
+                y=alt.Y("Streckenname:N", sort='-x', title="Strecke", axis=alt.Axis(labelAlign="left")),
                 tooltip=["Streckenname", "Rennen"]
             ).properties(height=400)
 
