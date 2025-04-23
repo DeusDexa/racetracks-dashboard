@@ -1,2 +1,6 @@
 streamlit
 pandas
+pandas-profiling
+streamlit-pandas-profiling
+altair
+numpy
