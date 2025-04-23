@@ -1,7 +1,5 @@
 streamlit
 pandas
-pandas-profiling
-streamlit-pandas-profiling
 altair
 numpy
-pydantic==1.10.14
+
