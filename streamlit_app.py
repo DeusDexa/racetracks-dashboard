@@ -427,7 +427,7 @@ with st.expander("🧪 Custom EDA für 'Zeiten'"):
 
     st.markdown("### 🔝 Top-Werte (ausgewählte Kategorien)")
 
-    auswahl_spalten = ["Auto", "Track Layout", "Race_Name", "Race_Type", "klasse"]
+    auswahl_spalten = ["Auto", "Track Layout", "Rennen", "Typ", "Klasse"]
     vorhandene_spalten = [col for col in auswahl_spalten if col in df_zeiten.columns]
 
     for col in vorhandene_spalten:
