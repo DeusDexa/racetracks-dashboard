@@ -408,13 +408,13 @@ with tab4:
     st.dataframe(df_zeiten)  
 
     with st.expander("📊 Sweetviz Report für 'Zeiten' anzeigen"):
-    with st.spinner("Report wird erstellt… das dauert ein paar Sekunden..."):
-        report = sv.analyze(df_zeiten)
-        report.show_html("sweetviz_report.html", open_browser=False)
+        with st.spinner("Report wird erstellt… das dauert ein paar Sekunden..."):
+            report = sv.analyze(df_zeiten)
+            report.show_html("sweetviz_report.html", open_browser=False)
 
-        with open("sweetviz_report.html", 'r', encoding='utf-8') as f:
-            html = f.read()
-        components.html(html, height=1000, scrolling=True)
+            with open("sweetviz_report.html", 'r', encoding='utf-8') as f:
+                html = f.read()
+            components.html(html, height=1000, scrolling=True)
 
     st.subheader("Autos")
     st.dataframe(df_autos)
