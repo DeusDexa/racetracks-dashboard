@@ -100,43 +100,43 @@ with tab1:
 
     # === FALL 1: Kein Logo geklickt → Streckenlogos anzeigen ===
     if not st.session_state["ausgewählte_strecke"]:
-    col1, col2 = st.columns([2, 1])  # 2/3 für Logos, 1/3 für Rennstatistik
+        col1, col2 = st.columns([2, 1])  # 2/3 für Logos, 1/3 für Rennstatistik
 
-    # === LINKS: Streckenlogos ===
-    with col1:
-        columns = st.columns(3)
-        for i, row in enumerate(df_track_logos.itertuples(index=False)):
-            with columns[i % 3]:
-                st.markdown(
-                    f"""
-                    <a href="?ausgewählte_strecke={row[1]}" target="_self" style="text-decoration: none;">
-                        <img src="{row[3]}" style="width: 100%; border-radius: 4px;">
-                        <div style="text-align: center; font-weight: bold; margin-top: 8px; height: 50px;">{row[1]}</div>
-                    </a>
-                    """,
-                    unsafe_allow_html=True
-                )
+        # === LINKS: Streckenlogos ===
+        with col1:
+            columns = st.columns(3)
+            for i, row in enumerate(df_track_logos.itertuples(index=False)):
+                with columns[i % 3]:
+                    st.markdown(
+                        f"""
+                        <a href="?ausgewählte_strecke={row[1]}" target="_self" style="text-decoration: none;">
+                            <img src="{row[3]}" style="width: 100%; border-radius: 4px;">
+                            <div style="text-align: center; font-weight: bold; margin-top: 8px; height: 50px;">{row[1]}</div>
+                        </a>
+                        """,
+                        unsafe_allow_html=True
+                    )
 
-    # === RECHTS: Anzahl Rennen pro Strecke ===
-    with col2:
-        st.markdown("#### Anzahl Rennen pro Strecke")
+        # === RECHTS: Anzahl Rennen pro Strecke ===
+        with col2:
+            st.markdown("#### Anzahl Rennen pro Strecke")
 
-        rennen_pro_strecke = df_zeiten["Streckenname"].value_counts().reset_index()
-        rennen_pro_strecke.columns = ["Strecke", "Rennen"]
+            rennen_pro_strecke = df_zeiten["Streckenname"].value_counts().reset_index()
+            rennen_pro_strecke.columns = ["Strecke", "Rennen"]
 
-        st.dataframe(
-            rennen_pro_strecke,
-            hide_index=True,
-            column_config={
-                "Strecke": st.column_config.TextColumn("Strecke"),
-                "Rennen": st.column_config.ProgressColumn(
-                    "Rennen",
-                    format="%d",
-                    min_value=0,
-                    max_value=rennen_pro_strecke["Rennen"].max()
-                )
-            }
-        )
+            st.dataframe(
+                rennen_pro_strecke,
+                hide_index=True,
+                column_config={
+                    "Strecke": st.column_config.TextColumn("Strecke"),
+                    "Rennen": st.column_config.ProgressColumn(
+                        "Rennen",
+                        format="%d",
+                        min_value=0,
+                        max_value=rennen_pro_strecke["Rennen"].max()
+                    )
+                }
+            )
 
     # === FALL 2: Strecke gewählt, aber noch kein Layout → Layout-Übersicht ===
     elif st.session_state["ausgewählte_strecke"] and not st.session_state["ausgewähltes_layout"]:
