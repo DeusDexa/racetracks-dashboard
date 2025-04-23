@@ -1,7 +1,6 @@
 import streamlit as st
 import pandas as pd
-import sweetviz as sv
-import streamlit.components.v1 as components
+
 
 # Optionales Styling
 st.markdown("""
