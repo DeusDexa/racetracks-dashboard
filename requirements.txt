@@ -2,5 +2,4 @@ streamlit
 pandas
 altair
 numpy
-sweetviz
-setuptools<65.5.0
+
