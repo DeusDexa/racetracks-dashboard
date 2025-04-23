@@ -422,19 +422,15 @@ with tab4:
 
 with st.expander("🧪 Custom EDA für 'Zeiten'"):
 
-    st.markdown("### 🔍 Überblick")
-    st.write("**Form:**", df_zeiten.shape)
-    st.write("**Spalten:**", df_zeiten.columns.tolist())
-
-    st.markdown("### ❓ Fehlende Werte")
-    st.write(df_zeiten.isnull().sum())
-
     st.markdown("### 🧬 Datentypen")
     st.write(df_zeiten.dtypes)
 
-    st.markdown("### 🔝 Top-Werte (bei kategorischen Spalten)")
-    kategorisch = df_zeiten.select_dtypes(include=["object", "category"]).columns.tolist()
-    for col in kategorisch:
+    st.markdown("### 🔝 Top-Werte (ausgewählte Kategorien)")
+
+    auswahl_spalten = ["Auto", "Track Layout", "Race_Name", "Race_Type", "klasse"]
+    vorhandene_spalten = [col for col in auswahl_spalten if col in df_zeiten.columns]
+
+    for col in vorhandene_spalten:
         st.markdown(f"**{col}**")
         st.write(df_zeiten[col].value_counts().head(5))
 
