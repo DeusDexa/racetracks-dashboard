@@ -138,8 +138,7 @@ with tab1:
                 tooltip=["Streckenname", "Rennen"]
             ).properties(
                 height=400,
-                width=600,
-                padding={"left": 200}  # ausreichend Platz für lange Streckennamen
+                width=600
             )
 
             st.altair_chart(chart, use_container_width=True)
