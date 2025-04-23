@@ -1,5 +1,7 @@
 import streamlit as st
 import pandas as pd
+from pandas_profiling import ProfileReport
+from streamlit_pandas_profiling import st_profile_report
 
 # Optionales Styling
 st.markdown("""
@@ -403,7 +405,14 @@ with tab3:
 # ================================================================================
 with tab4:
     st.subheader("Zeiten")
-    st.dataframe(df_zeiten)
+    st.dataframe(df_zeiten) 
+
+    with st.expander("📊 Zeige Pandas Profiling Report für 'Zeiten'"):
+        import pandas_profiling
+        from streamlit_pandas_profiling import st_profile_report
+
+        report = df_zeiten.profile_report(title="Profiling Report: Zeiten")
+        st_profile_report(report)
 
     st.subheader("Autos")
     st.dataframe(df_autos)
