@@ -417,3 +417,47 @@ with tab4:
 
     st.subheader("Track Logos")
     st.dataframe(df_track_logos)
+
+
+
+with st.expander("🧪 Custom EDA für 'Zeiten'"):
+
+    st.markdown("### 🔍 Überblick")
+    st.write("**Form:**", df_zeiten.shape)
+    st.write("**Spalten:**", df_zeiten.columns.tolist())
+
+    st.markdown("### ❓ Fehlende Werte")
+    st.write(df_zeiten.isnull().sum())
+
+    st.markdown("### 🧬 Datentypen")
+    st.write(df_zeiten.dtypes)
+
+    st.markdown("### 🔝 Top-Werte (bei kategorischen Spalten)")
+    kategorisch = df_zeiten.select_dtypes(include=["object", "category"]).columns.tolist()
+    for col in kategorisch:
+        st.markdown(f"**{col}**")
+        st.write(df_zeiten[col].value_counts().head(5))
+
+    st.markdown("### 📊 Histogramme numerischer Spalten")
+    numerisch = df_zeiten.select_dtypes(include=["number"]).columns.tolist()
+    for col in numerisch:
+        st.markdown(f"**{col}**")
+        st.bar_chart(df_zeiten[col].dropna())
+
+    st.markdown("### ⏱️ Zeitspalte 'Best Lap' analysieren (falls vorhanden)")
+    if "Best Lap" in df_zeiten.columns:
+        def parse_best_lap(zeit):
+            try:
+                zeit = str(zeit).strip()
+                m, rest = zeit.split(":")
+                s, ms = rest.split(",")
+                return int(m) * 60 + int(s) + int(ms) / 1000
+            except:
+                return None
+
+        df_zeiten["Best Lap (s)"] = df_zeiten["Best Lap"].apply(parse_best_lap)
+        st.write("Min:", df_zeiten["Best Lap (s)"].min())
+        st.write("Max:", df_zeiten["Best Lap (s)"].max())
+        st.write("Mean:", df_zeiten["Best Lap (s)"].mean())
+
+        st.bar_chart(df_zeiten["Best Lap (s)"].dropna())
