@@ -449,129 +449,274 @@ with tab1:
                             st.markdown("&nbsp;")
 
 # ================================================================================
-# TAB 2: Diagramme 
+# TAB 2: Fortschritt – persönliche Zeitentwicklung
 # ================================================================================
 with tab2:
-    st.subheader("📈 Fortschritt der Rundenzeiten")
+    import altair as alt
 
-    # Strecke auswählen
-    streckenauswahl = st.selectbox("Strecke wählen", df_layouts["Streckenname"].unique())
+    st.subheader("Fortschritt der Rundenzeiten")
+    st.caption("Entwicklung deiner Bestzeiten für eine konkrete Strecke, ein Layout und ein Fahrzeug.")
 
-    # Layout-Auswahl passend zur Strecke
-    layoutliste = df_layouts[df_layouts["Streckenname"] == streckenauswahl]["Track Layout"].unique()
-    layoutauswahl = st.selectbox("Layout wählen", layoutliste)
-    # Auto-Auswahl basierend auf vorhandenen Autos in den Rennen für das gewählte Layout
-    autos_in_layout = df_zeiten[df_zeiten["Track Layout"] == layoutauswahl]["Auto"].dropna().unique()
-    autoauswahl = st.selectbox("Auto wählen", ["Alle"] + sorted(autos_in_layout.tolist()))
-
-
-    # Debug-Ausgaben – gleiche Einrückungsebene wie oben
-    #st.write("Ausgewähltes Layout (per Auswahlfeld):", layoutauswahl)
-    #st.write("Alle Layouts in df_zeiten:", df_zeiten["Track Layout"].unique())
-
-
-
-
-
-    # Strip gegen Leerzeichen-Probleme
-    layoutauswahl = layoutauswahl.strip()
-    df_zeiten["Track Layout"] = df_zeiten["Track Layout"].str.strip()
-
-    # Gefilterte Renndaten
-    daten = df_zeiten[df_zeiten["Track Layout"] == layoutauswahl].copy()
-    
-    # Filter für das Auto anwenden (wenn nicht "Alle")
-    if autoauswahl != "Alle":
-        daten = daten[daten["Auto"] == autoauswahl]
-
-    # st.write("Best Lap Rohdaten:", daten["Best Lap"].tolist())
-    # Übersichtstabelle mit relevanten Infos
-    anzeige = daten[["Race_Date", "Race_Time", "Auto", "Best Lap"]].copy()
-    anzeige = anzeige.sort_values("Race_Date", ascending=False)  # Neueste oben
-
-    st.markdown("### Rennen im Überblick")
-    st.dataframe(anzeige, use_container_width=True)
-
-
-    if daten.empty:
-        st.info("Keine Daten für dieses Layout gefunden.")
-    else:
-        # Datum in echtes Format umwandeln
-        daten["Race_Date"] = pd.to_datetime(daten["Race_Date"], format="%d.%m.%Y", errors="coerce")
-
-        # Bestzeit in Sekunden umwandeln
-        def rundenzeit_in_sekunden(zeit):
-            try:
-                if not isinstance(zeit, str):
-                    return None
-                zeit = zeit.strip()
-                h, m, sec_ms = zeit.split(":")
-                sec, ms = sec_ms.split(",")
-                return int(h) * 3600 + int(m) * 60 + int(sec) + int(ms) / 1000
-            except Exception as e:
+    def rundenzeit_in_sekunden(zeit):
+        """GT7-Zeitformate wie 1:49,932 oder 0:01:49,932 robust in Sekunden umwandeln."""
+        try:
+            if pd.isna(zeit):
+                return None
+            text = str(zeit).strip().replace(".", ",")
+            teile = text.split(":")
+            if len(teile) == 2:
+                minuten, sekunden_ms = teile
+                stunden = 0
+            elif len(teile) == 3:
+                stunden, minuten, sekunden_ms = teile
+            else:
                 return None
 
+            if "," in sekunden_ms:
+                sekunden, millis = sekunden_ms.split(",", 1)
+            else:
+                sekunden, millis = sekunden_ms, "0"
 
-        daten["Best Lap (s)"] = daten["Best Lap"].apply(rundenzeit_in_sekunden)
-        st.write("Konvertierte Zeiten in Sekunden:", daten["Best Lap (s)"].tolist())
-
-        # Nur gültige Werte behalten
-        daten = daten.dropna(subset=["Race_Date", "Best Lap (s)"])
-
-        if daten.empty:
-            st.info("Keine gültigen Rundenzeiten vorhanden.")
-        else:
-            st.line_chart(daten.set_index("Race_Date")["Best Lap (s)"])
-
-    st.markdown("## Rennen als Balkendiagramm")
-
-    # Auswahl eines Streckenlayouts
-    layoutliste = df_layouts["Track Layout"].dropna().unique()
-    layoutauswahl = st.selectbox("Wähle ein Layout", sorted(layoutliste))
-
-    # Daten bereinigen & filtern
-    df_zeiten["Best Lap"] = df_zeiten["Best Lap"].astype(str)
-
-    def parse_best_lap(zeit):
-        try:
-            zeit = str(zeit).strip()
-            minuten, rest = zeit.split(":")
-            sekunden, millis = rest.split(",")
-            return int(minuten) * 60 + int(sekunden) + int(millis) / 1000
-        except:
+            millis = (millis + "000")[:3]
+            return (
+                int(stunden) * 3600
+                + int(minuten) * 60
+                + int(sekunden)
+                + int(millis) / 1000
+            )
+        except (ValueError, TypeError):
             return None
 
-    df_zeiten["Best Lap (s)"] = df_zeiten["Best Lap"].apply(parse_best_lap)
-    df_zeiten["Track Layout"] = df_zeiten["Track Layout"].astype(str).str.strip()
+    def sekunden_als_rundenzeit(sekunden):
+        if pd.isna(sekunden):
+            return "—"
+        minuten = int(sekunden // 60)
+        rest = sekunden - minuten * 60
+        return f"{minuten}:{rest:06.3f}".replace(".", ",")
 
-    # Gefilterte Daten
-    daten = df_zeiten[df_zeiten["Track Layout"] == layoutauswahl].copy()
-    daten["Auto"] = daten["Auto"].fillna("Unbekannt")
+    # Nur Strecken anbieten, für die tatsächlich Renndaten vorhanden sind.
+    layouts_mit_rennen = set(df_zeiten["Track Layout"].dropna().astype(str).str.strip())
+    fortschritt_layouts = df_layouts[
+        df_layouts["Track Layout"].astype(str).str.strip().isin(layouts_mit_rennen)
+    ].copy()
 
-    # Auswahl: Autos filtern
-    verfügbare_autos = sorted(daten["Auto"].unique())
-    auto_filter = st.multiselect("Fahrzeuge filtern", verfügbare_autos, default=verfügbare_autos)
+    strecken = sorted(fortschritt_layouts["Streckenname"].dropna().unique().tolist())
 
-    daten = daten[daten["Auto"].isin(auto_filter)].copy()
-
-    # Laufnummer für gleichmäßige X-Achse
-    daten = daten.sort_values("Race_Date")
-    daten["Rennlauf"] = range(1, len(daten) + 1)
-
-    # Anzeige prüfen
-    if daten.empty:
-        st.info("Keine Rennen für dieses Layout und diese Fahrzeugauswahl gefunden.")
+    if not strecken:
+        st.info("Für eine Fortschrittsauswertung sind noch keine passenden Renndaten vorhanden.")
     else:
-        import altair as alt
+        filter_col1, filter_col2, filter_col3 = st.columns(3)
 
-        chart = alt.Chart(daten).mark_bar().encode(
-            x=alt.X("Rennlauf:O", title="Rennen (chronologisch)", sort=None),
-            y=alt.Y("Best Lap (s):Q", title="Bestzeit in Sekunden"),
-            color=alt.Color("Auto:N", title="Fahrzeug"),
-            tooltip=["Race_Date", "Auto", "Best Lap"]
-        ).properties(width=800, height=400)
+        with filter_col1:
+            streckenauswahl = st.selectbox(
+                "Strecke",
+                strecken,
+                key="fortschritt_strecke"
+            )
 
-        st.altair_chart(chart, use_container_width=True)
+        layouts = (
+            fortschritt_layouts[
+                fortschritt_layouts["Streckenname"] == streckenauswahl
+            ]["Track Layout"]
+            .dropna()
+            .astype(str)
+            .str.strip()
+            .unique()
+            .tolist()
+        )
+
+        with filter_col2:
+            layoutauswahl = st.selectbox(
+                "Layout",
+                sorted(layouts),
+                key="fortschritt_layout"
+            )
+
+        autos = (
+            df_zeiten[
+                df_zeiten["Track Layout"].astype(str).str.strip() == layoutauswahl
+            ]["Auto"]
+            .dropna()
+            .astype(str)
+            .unique()
+            .tolist()
+        )
+
+        with filter_col3:
+            autoauswahl = st.selectbox(
+                "Fahrzeug",
+                sorted(autos),
+                key="fortschritt_auto"
+            ) if autos else None
+
+        if autoauswahl is None:
+            st.info("Für dieses Layout sind noch keine Fahrzeuge mit Renndaten vorhanden.")
+        else:
+            daten = df_zeiten[
+                (df_zeiten["Track Layout"].astype(str).str.strip() == layoutauswahl)
+                & (df_zeiten["Auto"].astype(str) == autoauswahl)
+            ].copy()
+
+            daten["Best Lap (s)"] = daten["Best Lap"].apply(rundenzeit_in_sekunden)
+            daten["Race_Date_dt"] = pd.to_datetime(
+                daten["Race_Date"],
+                format="%d.%m.%Y",
+                errors="coerce"
+            )
+
+            # Uhrzeit nur zur stabilen Sortierung am selben Tag ergänzen.
+            if "Race_Time" in daten.columns:
+                daten["Race_Time_sort"] = pd.to_datetime(
+                    daten["Race_Time"].astype(str),
+                    errors="coerce"
+                ).dt.time
+                daten["Race_Time_text"] = daten["Race_Time"].fillna("").astype(str)
+            else:
+                daten["Race_Time_sort"] = None
+                daten["Race_Time_text"] = ""
+
+            daten = daten.dropna(subset=["Race_Date_dt", "Best Lap (s)"]).copy()
+            daten = daten.sort_values(
+                ["Race_Date_dt", "Race_Time_text"],
+                ascending=[True, True]
+            ).reset_index(drop=True)
+
+            if daten.empty:
+                st.info("Für diese Auswahl sind keine gültigen Rundenzeiten vorhanden.")
+            else:
+                daten["Rennen"] = range(1, len(daten) + 1)
+                daten["PB (s)"] = daten["Best Lap (s)"].cummin()
+                daten["Vorherige PB (s)"] = daten["PB (s)"].shift(1)
+                daten["Neue PB"] = (
+                    daten["Vorherige PB (s)"].isna()
+                    | (daten["PB (s)"] < daten["Vorherige PB (s)"] - 0.0005)
+                )
+
+                erste_zeit = daten.iloc[0]["Best Lap (s)"]
+                bestzeit = daten["Best Lap (s)"].min()
+                verbesserung = erste_zeit - bestzeit
+                verbesserung_prozent = (
+                    verbesserung / erste_zeit * 100
+                    if erste_zeit > 0 else 0
+                )
+
+                metric1, metric2, metric3, metric4 = st.columns(4)
+                metric1.metric("Bestzeit", sekunden_als_rundenzeit(bestzeit))
+                metric2.metric("Erste Zeit", sekunden_als_rundenzeit(erste_zeit))
+                metric3.metric(
+                    "Verbesserung",
+                    f"{verbesserung:.3f} s".replace(".", ","),
+                    f"{verbesserung_prozent:.1f} %".replace(".", ",")
+                )
+                metric4.metric("Rennen", len(daten))
+
+                st.markdown("### Zeitentwicklung")
+
+                chart_daten = daten.copy()
+                chart_daten["Datum"] = chart_daten["Race_Date_dt"].dt.strftime("%d.%m.%Y")
+                chart_daten["Best Lap"] = chart_daten["Best Lap"].astype(str)
+                chart_daten["PB"] = chart_daten["PB (s)"].apply(sekunden_als_rundenzeit)
+
+                normale_zeiten = (
+                    alt.Chart(chart_daten)
+                    .mark_line(point=True, strokeWidth=2, color="#18C7AD")
+                    .encode(
+                        x=alt.X(
+                            "Rennen:Q",
+                            title="Rennen (chronologisch)",
+                            axis=alt.Axis(tickMinStep=1)
+                        ),
+                        y=alt.Y(
+                            "Best Lap (s):Q",
+                            title="Rundenzeit in Sekunden",
+                            scale=alt.Scale(zero=False)
+                        ),
+                        tooltip=[
+                            alt.Tooltip("Rennen:Q", title="Rennen"),
+                            alt.Tooltip("Datum:N", title="Datum"),
+                            alt.Tooltip("Best Lap:N", title="Best Lap"),
+                            alt.Tooltip("PB:N", title="PB bis dahin")
+                        ]
+                    )
+                )
+
+                pb_linie = (
+                    alt.Chart(chart_daten)
+                    .mark_line(strokeWidth=3, color="#23D7FF")
+                    .encode(
+                        x="Rennen:Q",
+                        y=alt.Y("PB (s):Q", scale=alt.Scale(zero=False))
+                    )
+                )
+
+                pb_punkte = (
+                    alt.Chart(chart_daten[chart_daten["Neue PB"]])
+                    .mark_point(
+                        filled=True,
+                        size=95,
+                        color="#23D7FF",
+                        stroke="#0A0A0A",
+                        strokeWidth=1
+                    )
+                    .encode(
+                        x="Rennen:Q",
+                        y="PB (s):Q",
+                        tooltip=[
+                            alt.Tooltip("Rennen:Q", title="Neue PB bei Rennen"),
+                            alt.Tooltip("Datum:N", title="Datum"),
+                            alt.Tooltip("PB:N", title="Persönliche Bestzeit")
+                        ]
+                    )
+                )
+
+                chart = (
+                    (normale_zeiten + pb_linie + pb_punkte)
+                    .properties(height=430)
+                    .configure(
+                        background="#131B21"
+                    )
+                    .configure_view(
+                        stroke="#263842"
+                    )
+                    .configure_axis(
+                        labelColor="#8E9AA4",
+                        titleColor="#F2F2F2",
+                        gridColor="#263842",
+                        domainColor="#263842",
+                        tickColor="#263842"
+                    )
+                )
+
+                st.altair_chart(chart, use_container_width=True)
+                st.caption(
+                    "Petrol zeigt die Bestzeit jedes Rennens. Cyan zeigt die persönliche Bestzeit-Entwicklung."
+                )
+
+                st.markdown("### Persönliche Bestzeiten")
+
+                pb_tabelle = daten[daten["Neue PB"]].copy()
+                pb_tabelle["Datum"] = pb_tabelle["Race_Date_dt"].dt.strftime("%d.%m.%Y")
+                pb_tabelle["Best Lap"] = pb_tabelle["Best Lap (s)"].apply(sekunden_als_rundenzeit)
+                pb_tabelle["Verbesserung zur vorherigen PB"] = (
+                    pb_tabelle["Vorherige PB (s)"] - pb_tabelle["PB (s)"]
+                )
+
+                def format_pb_delta(wert):
+                    if pd.isna(wert):
+                        return "—"
+                    return f"-{wert:.3f} s".replace(".", ",")
+
+                pb_tabelle["Verbesserung zur vorherigen PB"] = (
+                    pb_tabelle["Verbesserung zur vorherigen PB"].apply(format_pb_delta)
+                )
+
+                st.dataframe(
+                    pb_tabelle[
+                        ["Datum", "Auto", "Best Lap", "Verbesserung zur vorherigen PB"]
+                    ].rename(columns={"Auto": "Fahrzeug"}),
+                    use_container_width=True,
+                    hide_index=True
+                )
 
 
 # ================================================================================
