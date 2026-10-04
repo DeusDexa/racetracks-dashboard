@@ -353,17 +353,30 @@ with tab1:
 
         passende_layouts = df_layouts[df_layouts["Streckenname"] == gewählte_strecke]
 
-        for _, layout in passende_layouts.iterrows():
-            st.markdown(
-                f"""
-                <a href="?ausgewählte_strecke={gewählte_strecke}&ausgewähltes_layout={layout['Track Layout']}" target="_self"  style="text-decoration: none;">
-                    <img src="{layout['Track Layout Image-Link']}"
-                         style="border: 1px solid #263842; border-radius: 8px; width: 100%;">
-                    <div style="text-align: center; font-weight: bold; margin-top: 8px;">{layout['Track Layout']}</div>
-                </a>
-                """,
-                unsafe_allow_html=True
-            )
+        # Layouts kompakt als zweispaltige Cards darstellen
+        layout_columns = st.columns(2, gap="large")
+        for i, (_, layout) in enumerate(passende_layouts.iterrows()):
+            with layout_columns[i % 2]:
+                st.markdown(
+                    f"""
+                    <div style="max-width: 600px; margin: 0 auto 24px auto;">
+                        <a href="?ausgewählte_strecke={gewählte_strecke}&ausgewähltes_layout={layout['Track Layout']}"
+                           target="_self"
+                           style="display: block; text-decoration: none; padding: 12px;
+                                  background: #131B21; border: 1px solid #263842;
+                                  border-radius: 8px;">
+                            <img src="{layout['Track Layout Image-Link']}"
+                                 style="display: block; width: 100%; max-height: 430px;
+                                        object-fit: contain; border-radius: 4px;">
+                            <div style="text-align: center; font-weight: 600;
+                                        margin-top: 10px; color: #F2F2F2;">
+                                {layout['Track Layout']}
+                            </div>
+                        </a>
+                    </div>
+                    """,
+                    unsafe_allow_html=True
+                )
 
         # Zurück zur Logogalerie
         if st.button("🔙 Zurück zu den Logos"):
