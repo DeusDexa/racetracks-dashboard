@@ -18,6 +18,12 @@ def _font_b64(relative_path):
 _inter_font_b64 = _font_b64("assets/Fonts/Inter-VariableFont_opsz,wght.ttf")
 _roboto_mono_b64 = _font_b64("assets/Fonts/RobotoMono-VariableFont_wght.ttf")
 
+# DEXA-Navigationsicons
+_nav_track_b64 = _font_b64("assets/Track.png")
+_nav_analyse_b64 = _font_b64("assets/Analyse.png")
+_nav_fahrzeuge_b64 = _font_b64("assets/Fahrzeuge.png")
+_nav_tabellen_b64 = _font_b64("assets/Tabellen.png")
+
 # DEXA Design System V1 – rein visuelle Anpassung
 _font_css = f"""
     @font-face {{
@@ -37,9 +43,44 @@ _font_css = f"""
     }}
 """
 
+_nav_icon_css = f"""
+    button[role="tab"]::before {{
+        content: "";
+        display: inline-block;
+        width: 18px;
+        height: 18px;
+        margin-right: 6px;
+        background-repeat: no-repeat;
+        background-position: center;
+        background-size: contain;
+        vertical-align: -3px;
+        flex: 0 0 18px;
+    }}
+
+    button[role="tab"]:nth-child(1)::before {{
+        display: none;
+    }}
+
+    button[role="tab"]:nth-child(2)::before {{
+        background-image: url("data:image/png;base64,{_nav_track_b64}");
+    }}
+
+    button[role="tab"]:nth-child(3)::before {{
+        background-image: url("data:image/png;base64,{_nav_analyse_b64}");
+    }}
+
+    button[role="tab"]:nth-child(4)::before {{
+        background-image: url("data:image/png;base64,{_nav_fahrzeuge_b64}");
+    }}
+
+    button[role="tab"]:nth-child(5)::before {{
+        background-image: url("data:image/png;base64,{_nav_tabellen_b64}");
+    }}
+"""
+
 st.markdown("""
     <style>
-""" + _font_css + """
+""" + _font_css + _nav_icon_css + """
     :root {
         --dexa-bg: #0A0A0A;
         --dexa-surface-deep: #0B0F12;
@@ -276,7 +317,7 @@ df_track_logos = pd.read_csv(url_track_logos)
 # ==============================
 # Tabs definieren (Navigation)
 # ==============================
-overview_tab, tab1, tab2, tab3, tab4 = st.tabs(["Übersicht", "🏁 Rennstrecken", "📊 Analyse", "🚗 Fahrzeuge", "📊 Tabellenansicht"])
+overview_tab, tab1, tab2, tab3, tab4 = st.tabs(["Übersicht", "Rennstrecken", "Analyse", "Fahrzeuge", "Tabellenansicht"])
 
 
 
