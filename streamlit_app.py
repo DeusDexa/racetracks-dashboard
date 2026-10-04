@@ -1,12 +1,38 @@
 import streamlit as st
 import pandas as pd
+import base64
+from pathlib import Path
 
+
+# Lokale DEXA-Fonts aus dem Repository einbetten
+def _font_b64(relative_path):
+    return base64.b64encode(Path(relative_path).read_bytes()).decode("ascii")
+
+_inter_font_b64 = _font_b64("assets/Fonts/Inter-VariableFont_opsz,wght.ttf")
+_roboto_mono_b64 = _font_b64("assets/Fonts/RobotoMono-VariableFont_wght.ttf")
 
 # DEXA Design System V1 – rein visuelle Anpassung
+_font_css = f"""
+    @font-face {{
+        font-family: 'Inter';
+        src: url(data:font/ttf;base64,{_inter_font_b64}) format('truetype');
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+    }}
+
+    @font-face {{
+        font-family: 'Roboto Mono';
+        src: url(data:font/ttf;base64,{_roboto_mono_b64}) format('truetype');
+        font-style: normal;
+        font-weight: 100 900;
+        font-display: swap;
+    }}
+"""
+
 st.markdown("""
     <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;600;700&display=swap');
-
+""" + _font_css + """
     :root {
         --dexa-bg: #0A0A0A;
         --dexa-surface-deep: #0B0F12;
@@ -204,8 +230,9 @@ st.markdown("""
 # ==============================
 # App-Titel
 # ==============================
-st.image("https://i.imgur.com/CzaF31B.png", use_container_width=True)
-# st.title("Racetracks Dashboard")
+st.markdown('<div style="height: 8px;"></div>', unsafe_allow_html=True)
+st.image("assets/DEXA-LOGO-Database.png", width=520)
+st.markdown('<div style="height: 12px;"></div>', unsafe_allow_html=True)
 
 # ==============================
 # Google Sheet ID
