@@ -505,6 +505,18 @@ with tab2:
     if not strecken:
         st.info("Für eine Fortschrittsauswertung sind noch keine passenden Renndaten vorhanden.")
     else:
+        # Kontext aus dem Reiter "Rennstrecken" übernehmen:
+        # Wird dort eine andere Strecke gewählt, startet "Fortschritt" automatisch mit dieser Strecke.
+        kontext_strecke = st.session_state.get("ausgewählte_strecke")
+        letzter_kontext = st.session_state.get("_fortschritt_context_strecke")
+
+        if kontext_strecke in strecken and kontext_strecke != letzter_kontext:
+            st.session_state["fortschritt_strecke"] = kontext_strecke
+            st.session_state["_fortschritt_context_strecke"] = kontext_strecke
+            # Abhängige Auswahl zurücksetzen, damit Layout und Fahrzeug zur neuen Strecke passen.
+            st.session_state.pop("fortschritt_layout", None)
+            st.session_state.pop("fortschritt_auto", None)
+
         filter_col1, filter_col2, filter_col3 = st.columns(3)
 
         with filter_col1:
