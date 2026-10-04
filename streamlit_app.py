@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import base64
 from pathlib import Path
+from urllib.parse import quote
 
 
 # Browser-Tab / Favicon
@@ -1044,74 +1045,185 @@ with tab2:
 
 
 # ================================================================================
-# TAB 3: Fahrzeugübersicht mit Filter, Bild und Streckeninfo
+# TAB 3: Fahrzeugübersicht und Rennhistorie
 # ================================================================================
 with tab3:
-    st.subheader("🚗 Fahrzeuge und ihre Einsätze")
+    ausgewaehltes_auto = st.query_params.get("fahrzeug")
 
-    # === Filter: Klasse & Hersteller ===
-    klassen = sorted(df_autos["klasse"].dropna().unique().tolist())
-    hersteller = sorted(df_autos["Hersteller"].dropna().unique().tolist())
+    if ausgewaehltes_auto:
+        st.subheader(ausgewaehltes_auto)
+        st.caption("Rennhistorie dieses Fahrzeugs")
 
-    filter_col1, filter_col2 = st.columns(2)
-    with filter_col1:
-        klasse_filter = st.selectbox("Klasse wählen", ["Alle"] + klassen)
-    with filter_col2:
-        hersteller_filter = st.selectbox("Hersteller wählen", ["Alle"] + hersteller)
+        auto_info = df_autos[df_autos["Auto"].astype(str) == str(ausgewaehltes_auto)]
+        rennen_mit_auto = df_zeiten[
+            df_zeiten["Auto"].astype(str) == str(ausgewaehltes_auto)
+        ].copy()
 
-    # === Daten verknüpfen: Autos + Zeiten ===
-    df_autos_stats = df_autos.copy()
-    df_autos_stats["Rennen"] = df_autos_stats["Auto"].apply(
-        lambda car: (df_zeiten["Auto"] == car).sum()
-    )
+        detail_col1, detail_col2 = st.columns([1, 2], gap="large")
 
-    # === Optional: Nach meistgefahren sortieren ===
-    df_autos_stats = df_autos_stats.sort_values("Rennen", ascending=False)
+        with detail_col1:
+            if not auto_info.empty and pd.notna(auto_info.iloc[0].get("Car_Image")):
+                st.image(auto_info.iloc[0]["Car_Image"], use_container_width=True)
 
-    # === Filter anwenden ===
-    gefiltert = klasse_filter != "Alle" or hersteller_filter != "Alle"
-    if klasse_filter != "Alle":
-        df_autos_stats = df_autos_stats[df_autos_stats["klasse"] == klasse_filter]
-    if hersteller_filter != "Alle":
-        df_autos_stats = df_autos_stats[df_autos_stats["Hersteller"] == hersteller_filter]
+        with detail_col2:
+            st.metric("Rennen", len(rennen_mit_auto))
 
-    # === Bei "Alle" → nur Top 5 zeigen
-    if not gefiltert:
-        df_autos_stats = df_autos_stats.head(5)
-        st.info("Zeige die 5 meistgefahrenen Fahrzeuge. Du kannst mit den Filtern gezielt eingrenzen.")
+            if not auto_info.empty:
+                info = auto_info.iloc[0]
+                details = []
+                if pd.notna(info.get("Hersteller")):
+                    details.append(f"**Hersteller:** {info['Hersteller']}")
+                if pd.notna(info.get("klasse")):
+                    details.append(f"**Klasse:** {info['klasse']}")
+                if details:
+                    st.markdown("  \n".join(details))
 
-    # === Darstellung ===
-    for _, auto in df_autos_stats.iterrows():
-        st.markdown("---")
-        cols = st.columns([1, 2])
+        if st.button("Zurück zur Fahrzeugübersicht", key="fahrzeug_zurueck"):
+            st.query_params.clear()
+            st.query_params["main_tab"] = "Fahrzeuge"
+            st.rerun()
 
-        # Bild links
-        with cols[0]:
-            if pd.notna(auto["Car_Image"]):
-                st.image(auto["Car_Image"], use_container_width=True)
+        st.divider()
+        st.markdown("### Gefahrene Rennen")
 
-        # Text rechts
-        with cols[1]:
-            st.markdown(f"**{auto['Auto']}**  |  **Rennen:** {auto['Rennen']}")
+        if rennen_mit_auto.empty:
+            st.info("Für dieses Fahrzeug sind noch keine Rennen gespeichert.")
+        else:
+            rennen_mit_auto["Race_Date_dt"] = pd.to_datetime(
+                rennen_mit_auto["Race_Date"],
+                format="%d.%m.%Y",
+                errors="coerce"
+            )
+            rennen_mit_auto = rennen_mit_auto.sort_values(
+                ["Race_Date_dt", "Race_Time"],
+                ascending=[False, False]
+            )
 
-            # Layouts + Bestzeiten ermitteln
-            rennen_mit_auto = df_zeiten[df_zeiten["Auto"] == auto["Auto"]]
-            layout_gruppen = rennen_mit_auto.groupby("Track Layout")
+            bevorzugte_spalten = [
+                "Race_Date",
+                "Race_Time",
+                "Track Layout",
+                "Rennen",
+                "Typ",
+                "Klasse",
+                "Reifen",
+                "#Laps",
+                "start pos",
+                "Finish Pos",
+                "Best Lap",
+                "Kommentar",
+            ]
+            sichtbare_spalten = [
+                col for col in bevorzugte_spalten
+                if col in rennen_mit_auto.columns
+            ]
 
-            # Sortiere nach Häufigkeit der Layouts, nimm max. 3
-            meist_gefahrene_layouts = layout_gruppen.size().sort_values(ascending=False).head(3).index.tolist()
+            st.dataframe(
+                rennen_mit_auto[sichtbare_spalten].rename(
+                    columns={
+                        "Race_Date": "Datum",
+                        "Race_Time": "Uhrzeit",
+                        "Track Layout": "Strecke / Layout",
+                        "Rennen": "Rennen",
+                        "Typ": "Typ",
+                        "Klasse": "Klasse",
+                        "Reifen": "Reifen",
+                        "#Laps": "Runden",
+                        "start pos": "Start",
+                        "Finish Pos": "Ziel",
+                        "Best Lap": "Best Lap",
+                        "Kommentar": "Kommentar",
+                    }
+                ),
+                use_container_width=True,
+                hide_index=True
+            )
 
-            for layout in meist_gefahrene_layouts:
-                zeiten = rennen_mit_auto[rennen_mit_auto["Track Layout"] == layout]["Best Lap"]
-                bestzeit = zeiten.min() if not zeiten.empty else "--"
-                st.markdown(f"- {layout}  _(Bestzeit: {bestzeit})_")
+    else:
+        st.subheader("Fahrzeuge & Rennhistorie")
+        st.caption("Fahrzeug auswählen, um alle damit gefahrenen Rennen anzuzeigen.")
 
-            # Weniger als 3 Layouts? Leere Zeilen einfügen
-            for _ in range(3 - len(meist_gefahrene_layouts)):
-                st.markdown("&nbsp;")
+        # === Filter: Klasse & Hersteller ===
+        klassen = sorted(df_autos["klasse"].dropna().unique().tolist())
+        hersteller = sorted(df_autos["Hersteller"].dropna().unique().tolist())
 
-        st.markdown("\n")
+        filter_col1, filter_col2 = st.columns(2)
+        with filter_col1:
+            klasse_filter = st.selectbox("Klasse wählen", ["Alle"] + klassen)
+        with filter_col2:
+            hersteller_filter = st.selectbox("Hersteller wählen", ["Alle"] + hersteller)
 
+        # === Daten verknüpfen: Autos + Zeiten ===
+        df_autos_stats = df_autos.copy()
+        df_autos_stats["Rennen"] = df_autos_stats["Auto"].apply(
+            lambda car: (df_zeiten["Auto"] == car).sum()
+        )
+
+        # === Optional: Nach meistgefahren sortieren ===
+        df_autos_stats = df_autos_stats.sort_values("Rennen", ascending=False)
+
+        # === Filter anwenden ===
+        gefiltert = klasse_filter != "Alle" or hersteller_filter != "Alle"
+        if klasse_filter != "Alle":
+            df_autos_stats = df_autos_stats[df_autos_stats["klasse"] == klasse_filter]
+        if hersteller_filter != "Alle":
+            df_autos_stats = df_autos_stats[df_autos_stats["Hersteller"] == hersteller_filter]
+
+        # === Bei "Alle" → nur Top 5 zeigen ===
+        if not gefiltert:
+            df_autos_stats = df_autos_stats.head(5)
+            st.info("Zeige die 5 meistgefahrenen Fahrzeuge. Du kannst mit den Filtern gezielt eingrenzen.")
+
+        # === Darstellung ===
+        for _, auto in df_autos_stats.iterrows():
+            st.markdown("---")
+            cols = st.columns([1, 2])
+
+            auto_name = str(auto["Auto"])
+            auto_url = quote(auto_name, safe="")
+
+            # Bild links – klickbar zur Rennhistorie
+            with cols[0]:
+                if pd.notna(auto["Car_Image"]):
+                    st.markdown(
+                        f"""
+                        <a href="?main_tab=Fahrzeuge&fahrzeug={auto_url}"
+                           target="_self"
+                           title="Rennhistorie für {auto_name}">
+                            <img src="{auto['Car_Image']}"
+                                 style="width: 100%; border-radius: 8px;
+                                        border: 1px solid #263842;">
+                        </a>
+                        """,
+                        unsafe_allow_html=True
+                    )
+
+            # Text rechts
+            with cols[1]:
+                st.markdown(f"**{auto_name}**  |  **Rennen:** {auto['Rennen']}")
+
+                rennen_mit_auto = df_zeiten[df_zeiten["Auto"] == auto["Auto"]]
+                layout_gruppen = rennen_mit_auto.groupby("Track Layout")
+
+                meist_gefahrene_layouts = (
+                    layout_gruppen.size()
+                    .sort_values(ascending=False)
+                    .head(3)
+                    .index
+                    .tolist()
+                )
+
+                for layout in meist_gefahrene_layouts:
+                    zeiten = rennen_mit_auto[
+                        rennen_mit_auto["Track Layout"] == layout
+                    ]["Best Lap"]
+                    bestzeit = zeiten.min() if not zeiten.empty else "--"
+                    st.markdown(f"- {layout}  _(Bestzeit: {bestzeit})_")
+
+                for _ in range(3 - len(meist_gefahrene_layouts)):
+                    st.markdown("&nbsp;")
+
+            st.markdown("\n")
 
 
 # ================================================================================
