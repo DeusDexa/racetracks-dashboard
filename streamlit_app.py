@@ -278,12 +278,27 @@ df_track_logos = pd.read_csv(url_track_logos)
 # ==============================
 nav_labels = ["Übersicht", "Rennstrecken", "Analyse", "Fahrzeuge", "Tabellenansicht"]
 
-# Aktiven Hauptreiter über Streamlit-Reruns hinweg behalten.
-# Das ist besonders wichtig, weil die Strecken-/Layout-Navigation Query-Parameter setzt.
+# Hauptnavigation auch bei URL-/Query-Parameter-Navigation stabil halten.
+# Klicks auf Strecke/Layout laden die Seite über eine URL neu; deshalb wird
+# der aktive Hauptreiter zusätzlich im Query-Parameter "main_tab" geführt.
+requested_tab = st.query_params.get("main_tab")
+if requested_tab not in nav_labels:
+    requested_tab = "Übersicht"
+
+if st.session_state.get("_main_route_tab") != requested_tab:
+    st.session_state["main_navigation"] = requested_tab
+    st.session_state["_main_route_tab"] = requested_tab
+
+def _sync_main_navigation():
+    active_tab = st.session_state.get("main_navigation", "Übersicht")
+    st.session_state["_main_route_tab"] = active_tab
+    st.query_params["main_tab"] = active_tab
+
 overview_tab, tab1, tab2, tab3, tab4 = st.tabs(
     nav_labels,
+    default=requested_tab,
     key="main_navigation",
-    on_change="rerun"
+    on_change=_sync_main_navigation
 )
 
 
@@ -483,7 +498,7 @@ with tab1:
             with columns[i % 3]:
                 st.markdown(
                     f"""
-                    <a href="?ausgewählte_strecke={row[1]}" target="_self" style="text-decoration: none;">
+                    <a href="?main_tab=Rennstrecken&ausgewählte_strecke={row[1]}" target="_self" style="text-decoration: none;">
                         <img src="{row[3]}" style="width: 100%; border-radius: 4px;">
                         <div style="text-align: center; font-weight: bold; margin-top: 8px; height: 50px;">{row[1]}</div>
                     </a>
@@ -505,7 +520,7 @@ with tab1:
                 st.markdown(
                     f"""
                     <div style="max-width: 600px; margin: 0 auto 24px auto;">
-                        <a href="?ausgewählte_strecke={gewählte_strecke}&ausgewähltes_layout={layout['Track Layout']}"
+                        <a href="?main_tab=Rennstrecken&ausgewählte_strecke={gewählte_strecke}&ausgewähltes_layout={layout['Track Layout']}"
                            target="_self"
                            style="display: block; text-decoration: none; padding: 12px;
                                   background: #131B21; border: 1px solid #263842;
@@ -527,6 +542,7 @@ with tab1:
         if st.button("🔙 Zurück zu den Logos"):
             st.session_state["ausgewählte_strecke"] = None
             st.query_params.clear()
+            st.query_params["main_tab"] = "Rennstrecken"
             st.rerun()
 
     # === FALL 3: Layout gewählt → Rennen anzeigen ===
@@ -547,6 +563,7 @@ with tab1:
             if st.button("🔙 Zurück zu den Layouts"):
                 st.session_state["ausgewähltes_layout"] = None
                 st.query_params.clear()
+                st.query_params["main_tab"] = "Rennstrecken"
                 st.rerun()
         with col2:
             if st.button("🏁 Zurück zu den Strecken"):
