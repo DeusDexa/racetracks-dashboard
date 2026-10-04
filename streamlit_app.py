@@ -4,6 +4,13 @@ import base64
 from pathlib import Path
 
 
+# Browser-Tab / Favicon
+st.set_page_config(
+    page_title="DEXA Racing Database",
+    page_icon="assets/favicon-32x32.png",
+)
+
+
 # Lokale DEXA-Fonts aus dem Repository einbetten
 def _font_b64(relative_path):
     return base64.b64encode(Path(relative_path).read_bytes()).decode("ascii")
