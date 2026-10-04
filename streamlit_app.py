@@ -399,6 +399,45 @@ with overview_tab:
             f"Für die Positionsquote wurden {len(positionsdaten)} PvP-Rennen mit gültiger Start- und Zielposition ausgewertet."
         )
 
+    st.divider()
+    st.markdown("### Anzahl Rennen pro Strecke")
+
+    rennen_pro_layout = df_zeiten["Track Layout"].value_counts().reset_index()
+    rennen_pro_layout.columns = ["Track Layout", "Rennen"]
+    layout_mit_strecke = pd.merge(
+        rennen_pro_layout,
+        df_layouts[["Track Layout", "Streckenname"]],
+        on="Track Layout",
+        how="left"
+    )
+    rennen_pro_strecke = (
+        layout_mit_strecke.groupby("Streckenname")["Rennen"]
+        .sum()
+        .reset_index()
+        .sort_values("Rennen", ascending=False)
+    )
+
+    import altair as alt
+    chart = alt.Chart(rennen_pro_strecke).mark_bar(color="#23D7FF").encode(
+        x=alt.X("Rennen:Q", title="Rennen"),
+        y=alt.Y("Streckenname:N", sort="-x", title="Strecke"),
+        tooltip=["Streckenname", "Rennen"]
+    ).properties(
+        height=430
+    ).configure(
+        background="#131B21"
+    ).configure_view(
+        stroke="#263842"
+    ).configure_axis(
+        labelColor="#8E9AA4",
+        titleColor="#F2F2F2",
+        gridColor="#263842",
+        domainColor="#263842",
+        tickColor="#263842"
+    )
+
+    st.altair_chart(chart, use_container_width=True)
+
 
 
 # ================================================================================
@@ -430,49 +469,19 @@ with tab1:
 
     # === FALL 1: Kein Logo geklickt → Streckenlogos anzeigen ===
     if not st.session_state["ausgewählte_strecke"]:
-        col1, col2 = st.columns([2, 1])  # 2/3 für Logos, 1/3 für Rennstatistik
-
-        # === LINKS: Streckenlogos ===
-        with col1:
-            columns = st.columns(3)
-            for i, row in enumerate(df_track_logos.itertuples(index=False)):
-                with columns[i % 3]:
-                    st.markdown(
-                        f"""
-                        <a href="?ausgewählte_strecke={row[1]}" target="_self" style="text-decoration: none;">
-                            <img src="{row[3]}" style="width: 100%; border-radius: 4px;">
-                            <div style="text-align: center; font-weight: bold; margin-top: 8px; height: 50px;">{row[1]}</div>
-                        </a>
-                        """,
-                        unsafe_allow_html=True
-                    )
-
-        # === RECHTS: Anzahl Rennen pro Strecke ===
-        with col2:
-            st.markdown("#### Anzahl Rennen pro Strecke")
-            rennen_pro_layout = df_zeiten["Track Layout"].value_counts().reset_index()
-            rennen_pro_layout.columns = ["Track Layout", "Rennen"]
-            layout_mit_strecke = pd.merge(
-                rennen_pro_layout,
-                df_layouts[["Track Layout", "Streckenname"]],
-                on="Track Layout",
-                how="left"
-            )
-            rennen_pro_strecke = layout_mit_strecke.groupby("Streckenname")["Rennen"].sum().reset_index()
-            rennen_pro_strecke = rennen_pro_strecke.sort_values("Rennen", ascending=False)
-
-            import altair as alt
-            chart = alt.Chart(rennen_pro_strecke).mark_bar().encode(
-                x=alt.X("Rennen:Q", title="Rennen"),
-                # y=alt.Y("Streckenname:N", sort='-x', title="Strecke", axis=alt.Axis(labelAlign="left", labelAngle=0, labelLimit=200)),
-                y=alt.Y("Streckenname:N", sort='-x', title="Strecke"),
-                tooltip=["Streckenname", "Rennen"]
-            ).properties(
-                height=400,
-                width=600
-            )
-
-            st.altair_chart(chart, use_container_width=True)
+        # Streckenlogos nutzen die volle Breite; Statistik steht jetzt auf der Übersichtsseite.
+        columns = st.columns(3)
+        for i, row in enumerate(df_track_logos.itertuples(index=False)):
+            with columns[i % 3]:
+                st.markdown(
+                    f"""
+                    <a href="?ausgewählte_strecke={row[1]}" target="_self" style="text-decoration: none;">
+                        <img src="{row[3]}" style="width: 100%; border-radius: 4px;">
+                        <div style="text-align: center; font-weight: bold; margin-top: 8px; height: 50px;">{row[1]}</div>
+                    </a>
+                    """,
+                    unsafe_allow_html=True
+                )
 
     # === FALL 2: Strecke gewählt, aber noch kein Layout → Layout-Übersicht ===
     elif st.session_state["ausgewählte_strecke"] and not st.session_state["ausgewähltes_layout"]:
