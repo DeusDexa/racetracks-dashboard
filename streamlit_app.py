@@ -346,7 +346,7 @@ with overview_tab:
                 .replace(".", ",")
                 if len(positionsdaten) else "—"
             ),
-            "icon": "assets/Controller.png",
+            "icon": "assets/Analyse.png",
         },
     ]
 
