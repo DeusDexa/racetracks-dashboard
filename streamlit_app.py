@@ -2,24 +2,199 @@ import streamlit as st
 import pandas as pd
 
 
-# Optionales Styling
+# DEXA Design System V1 – rein visuelle Anpassung
 st.markdown("""
     <style>
-    /* Schriftart & Standardfarbe */
-    body, div, h1, h2, h3, h4, p {
-        font-family: 'Segoe UI', sans-serif;
-        color: #222 !important;
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&family=Roboto+Mono:wght@400;600;700&display=swap');
+
+    :root {
+        --dexa-bg: #0A0A0A;
+        --dexa-surface-deep: #0B0F12;
+        --dexa-surface: #10161B;
+        --dexa-card: #131B21;
+        --dexa-border-strong: #1D6170;
+        --dexa-border-soft: #263842;
+        --dexa-text: #F2F2F2;
+        --dexa-text-muted: #8E9AA4;
+        --dexa-accent: #18C7AD;
+        --dexa-telemetry: #23D7FF;
+        --dexa-red: #C1121F;
+        --dexa-success: #30E57A;
+        --dexa-warning: #F4C542;
+        --dexa-info: #42A5FF;
     }
 
-    /* Hintergrund hell erzwingen, auch bei Dark Mode */
-    html, body, [data-testid="stAppViewContainer"] {
-        background-color: white !important;
-        color: #222 !important;
+    html, body, [data-testid="stAppViewContainer"], .stApp {
+        background: var(--dexa-bg) !important;
+        color: var(--dexa-text) !important;
     }
 
-    /* Optional: Leichter Innenabstand oben */
+    body, .stApp, button, input, textarea, select {
+        font-family: 'Inter', 'Segoe UI', sans-serif !important;
+    }
+
+    code, pre, kbd, samp,
+    [data-testid="stDataFrame"] [role="gridcell"] {
+        font-family: 'Roboto Mono', Consolas, monospace;
+    }
+
+    [data-testid="stHeader"] {
+        background: var(--dexa-surface-deep) !important;
+        border-bottom: 1px solid var(--dexa-border-soft);
+    }
+
     .block-container {
-        padding-top: 1rem;
+        max-width: 1600px;
+        padding-top: 1.5rem;
+        padding-left: 2rem;
+        padding-right: 2rem;
+        padding-bottom: 2.5rem;
+    }
+
+    h1, h2, h3, h4, h5, h6,
+    p, label, span, div {
+        color: var(--dexa-text);
+    }
+
+    h1 { font-weight: 600 !important; }
+    h2, h3, h4 { font-weight: 600 !important; }
+    small, .stCaption, [data-testid="stCaptionContainer"] {
+        color: var(--dexa-text-muted) !important;
+    }
+
+    hr {
+        border: 0 !important;
+        border-top: 1px solid var(--dexa-border-soft) !important;
+        margin: 1.5rem 0 !important;
+    }
+
+    /* Tabs */
+    [data-baseweb="tab-list"] {
+        gap: 8px;
+        border-bottom: 1px solid var(--dexa-border-soft);
+    }
+
+    button[role="tab"] {
+        background: transparent !important;
+        color: var(--dexa-text-muted) !important;
+        border-radius: 4px 4px 0 0 !important;
+        font-weight: 600 !important;
+        padding: 0.65rem 0.85rem !important;
+        transition: color 150ms ease, border-color 150ms ease, background 150ms ease;
+    }
+
+    button[role="tab"]:hover {
+        color: var(--dexa-text) !important;
+        background: var(--dexa-surface-deep) !important;
+    }
+
+    button[role="tab"][aria-selected="true"] {
+        color: var(--dexa-text) !important;
+    }
+
+    [data-baseweb="tab-highlight"] {
+        background-color: var(--dexa-accent) !important;
+        height: 3px !important;
+    }
+
+    /* Buttons */
+    .stButton > button, .stDownloadButton > button {
+        background: var(--dexa-card) !important;
+        color: var(--dexa-text) !important;
+        border: 1px solid var(--dexa-accent) !important;
+        border-radius: 4px !important;
+        font-weight: 600 !important;
+        min-height: 38px;
+        box-shadow: none !important;
+        transition: background 150ms ease, border-color 150ms ease;
+    }
+
+    .stButton > button:hover, .stDownloadButton > button:hover {
+        background: var(--dexa-surface-deep) !important;
+        border-color: var(--dexa-telemetry) !important;
+        color: var(--dexa-text) !important;
+    }
+
+    .stButton > button:focus-visible, .stDownloadButton > button:focus-visible {
+        outline: 2px solid var(--dexa-accent) !important;
+        outline-offset: 2px;
+    }
+
+    /* Inputs / Selects / Multiselects */
+    [data-baseweb="select"] > div,
+    [data-baseweb="input"] > div,
+    .stTextInput input,
+    .stNumberInput input,
+    .stTextArea textarea {
+        background: var(--dexa-card) !important;
+        color: var(--dexa-text) !important;
+        border-color: var(--dexa-border-soft) !important;
+        border-radius: 4px !important;
+    }
+
+    [data-baseweb="select"] > div:focus-within,
+    [data-baseweb="input"] > div:focus-within,
+    .stTextInput input:focus,
+    .stNumberInput input:focus,
+    .stTextArea textarea:focus {
+        border-color: var(--dexa-accent) !important;
+        box-shadow: 0 0 0 1px var(--dexa-accent) !important;
+    }
+
+    [data-baseweb="popover"] > div,
+    [role="listbox"] {
+        background: var(--dexa-card) !important;
+        border: 1px solid var(--dexa-border-soft) !important;
+        border-radius: 8px !important;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.28) !important;
+    }
+
+    /* Alerts / Expander / Data containers */
+    [data-testid="stAlert"],
+    [data-testid="stExpander"] {
+        background: var(--dexa-card) !important;
+        border: 1px solid var(--dexa-border-soft) !important;
+        border-radius: 8px !important;
+        box-shadow: none !important;
+    }
+
+    [data-testid="stDataFrame"] {
+        border: 1px solid var(--dexa-border-soft);
+        border-radius: 8px;
+        overflow: hidden;
+        background: var(--dexa-card);
+    }
+
+    /* Charts */
+    [data-testid="stVegaLiteChart"],
+    [data-testid="stArrowVegaLiteChart"],
+    [data-testid="stPlotlyChart"] {
+        background: var(--dexa-card);
+        border: 1px solid var(--dexa-border-soft);
+        border-radius: 8px;
+        padding: 8px;
+    }
+
+    /* Links */
+    a {
+        color: var(--dexa-telemetry) !important;
+    }
+
+    a:hover {
+        color: var(--dexa-accent) !important;
+    }
+
+    /* Images / media */
+    img {
+        border-radius: 8px;
+    }
+
+    /* Mobile */
+    @media (max-width: 900px) {
+        .block-container {
+            padding-left: 1rem;
+            padding-right: 1rem;
+        }
     }
     </style>
 """, unsafe_allow_html=True)
@@ -156,7 +331,7 @@ with tab1:
                 f"""
                 <a href="?ausgewählte_strecke={gewählte_strecke}&ausgewähltes_layout={layout['Track Layout']}" target="_self"  style="text-decoration: none;">
                     <img src="{layout['Track Layout Image-Link']}"
-                         style="border: 2px solid black; border-radius: 6px; width: 100%;">
+                         style="border: 1px solid #263842; border-radius: 8px; width: 100%;">
                     <div style="text-align: center; font-weight: bold; margin-top: 8px;">{layout['Track Layout']}</div>
                 </a>
                 """,
