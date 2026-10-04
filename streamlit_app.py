@@ -276,7 +276,15 @@ df_track_logos = pd.read_csv(url_track_logos)
 # ==============================
 # Tabs definieren (Navigation)
 # ==============================
-overview_tab, tab1, tab2, tab3, tab4 = st.tabs(["Übersicht", "Rennstrecken", "Analyse", "Fahrzeuge", "Tabellenansicht"])
+nav_labels = ["Übersicht", "Rennstrecken", "Analyse", "Fahrzeuge", "Tabellenansicht"]
+
+# Aktiven Hauptreiter über Streamlit-Reruns hinweg behalten.
+# Das ist besonders wichtig, weil die Strecken-/Layout-Navigation Query-Parameter setzt.
+overview_tab, tab1, tab2, tab3, tab4 = st.tabs(
+    nav_labels,
+    key="main_navigation",
+    on_change="rerun"
+)
 
 
 
