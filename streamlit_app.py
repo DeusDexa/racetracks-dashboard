@@ -284,7 +284,7 @@ overview_tab, tab1, tab2, tab3, tab4 = st.tabs(["Übersicht", "🏁 Rennstrecken
 # ÜBERSICHT: PvP-Kennzahlen
 # ================================================================================
 with overview_tab:
-    st.subheader("PvP Rennübersicht")
+    st.subheader("Online-Rennen")
     st.caption("Kennzahlen ausschließlich aus Rennen gegen andere Spieler.")
 
     pvp = df_zeiten[
