@@ -269,7 +269,128 @@ df_track_logos = pd.read_csv(url_track_logos)
 # ==============================
 # Tabs definieren (Navigation)
 # ==============================
-tab1, tab2, tab3, tab4 = st.tabs(["🏁 Rennstrecken", "📊 Analyse", "🚗 Fahrzeuge", "📊 Tabellenansicht"])
+overview_tab, tab1, tab2, tab3, tab4 = st.tabs(["Übersicht", "🏁 Rennstrecken", "📊 Analyse", "🚗 Fahrzeuge", "📊 Tabellenansicht"])
+
+
+
+# ================================================================================
+# ÜBERSICHT: PvP-Kennzahlen
+# ================================================================================
+with overview_tab:
+    st.subheader("PvP Rennübersicht")
+    st.caption("Kennzahlen ausschließlich aus Rennen gegen andere Spieler.")
+
+    pvp = df_zeiten[
+        df_zeiten["Typ"].astype(str).str.strip().str.upper() == "PVP"
+    ].copy()
+
+    pvp["start pos"] = pd.to_numeric(pvp["start pos"], errors="coerce")
+    pvp["Finish Pos"] = pd.to_numeric(pvp["Finish Pos"], errors="coerce")
+
+    pvp_gesamt = len(pvp)
+    pole_starts = int((pvp["start pos"] == 1).sum())
+    siege = int((pvp["Finish Pos"] == 1).sum())
+    top5 = int((pvp["Finish Pos"] <= 5).sum())
+
+    positionsdaten = pvp.dropna(subset=["start pos", "Finish Pos"]).copy()
+    gehalten_oder_besser = int(
+        (positionsdaten["Finish Pos"] <= positionsdaten["start pos"]).sum()
+    )
+
+    def _quote(anzahl, basis):
+        return (anzahl / basis * 100) if basis else 0.0
+
+    def _asset_data_uri(path):
+        suffix = Path(path).suffix.lower().lstrip(".") or "png"
+        mime = "jpeg" if suffix in ("jpg", "jpeg") else suffix
+        data = base64.b64encode(Path(path).read_bytes()).decode("ascii")
+        return f"data:image/{mime};base64,{data}"
+
+    kpi_cards = [
+        {
+            "titel": "PvP-Rennen",
+            "wert": str(pvp_gesamt),
+            "detail": "Gesamt",
+            "icon": "assets/Checkerflag.png",
+        },
+        {
+            "titel": "Pole-Starts",
+            "wert": str(pole_starts),
+            "detail": f"{_quote(pole_starts, pvp_gesamt):.1f} %".replace(".", ","),
+            "icon": "assets/Position.png",
+        },
+        {
+            "titel": "Siege",
+            "wert": str(siege),
+            "detail": f"{_quote(siege, pvp_gesamt):.1f} %".replace(".", ","),
+            "icon": "assets/bestlapcrown.png",
+        },
+        {
+            "titel": "Top 5",
+            "wert": str(top5),
+            "detail": f"{_quote(top5, pvp_gesamt):.1f} %".replace(".", ","),
+            "icon": "assets/LastLap.png",
+        },
+        {
+            "titel": "Startplatz gehalten / verbessert",
+            "wert": str(gehalten_oder_besser),
+            "detail": (
+                f"{_quote(gehalten_oder_besser, len(positionsdaten)):.1f} %"
+                .replace(".", ",")
+                if len(positionsdaten) else "—"
+            ),
+            "icon": "assets/Controller.png",
+        },
+    ]
+
+    kpi_columns = st.columns(5, gap="medium")
+    for column, card in zip(kpi_columns, kpi_cards):
+        with column:
+            icon_uri = _asset_data_uri(card["icon"])
+            st.markdown(
+                f"""
+                <div style="
+                    min-height: 190px;
+                    padding: 16px;
+                    background: #131B21;
+                    border: 1px solid #263842;
+                    border-radius: 8px;
+                ">
+                    <img src="{icon_uri}" alt="" style="
+                        width: 42px;
+                        height: 42px;
+                        object-fit: contain;
+                        margin-bottom: 14px;
+                    ">
+                    <div style="
+                        font-size: 13px;
+                        line-height: 1.35;
+                        color: #8E9AA4;
+                        min-height: 36px;
+                    ">{card["titel"]}</div>
+                    <div style="
+                        margin-top: 8px;
+                        font-family: 'Roboto Mono', Consolas, monospace;
+                        font-size: 32px;
+                        line-height: 1;
+                        font-weight: 700;
+                        color: #F2F2F2;
+                    ">{card["wert"]}</div>
+                    <div style="
+                        margin-top: 10px;
+                        font-family: 'Roboto Mono', Consolas, monospace;
+                        font-size: 13px;
+                        color: #23D7FF;
+                    ">{card["detail"]}</div>
+                </div>
+                """,
+                unsafe_allow_html=True
+            )
+
+    if len(positionsdaten) != pvp_gesamt:
+        st.caption(
+            f"Für die Positionsquote wurden {len(positionsdaten)} PvP-Rennen mit gültiger Start- und Zielposition ausgewertet."
+        )
 
 
 
