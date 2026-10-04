@@ -269,7 +269,7 @@ df_track_logos = pd.read_csv(url_track_logos)
 # ==============================
 # Tabs definieren (Navigation)
 # ==============================
-tab1, tab2, tab3, tab4 = st.tabs(["🏁 Rennstrecken", "📈 Fortschritt", "🚗 Fahrzeuge", "📊 Tabellenansicht"])
+tab1, tab2, tab3, tab4 = st.tabs(["🏁 Rennstrecken", "📊 Analyse", "🚗 Fahrzeuge", "📊 Tabellenansicht"])
 
 
 
@@ -449,13 +449,15 @@ with tab1:
                             st.markdown("&nbsp;")
 
 # ================================================================================
-# TAB 2: Fortschritt – persönliche Zeitentwicklung
+# TAB 2: Analyse – Fortschritt, Bestzeiten und Aktivität
 # ================================================================================
 with tab2:
     import altair as alt
 
-    st.subheader("Fortschritt der Rundenzeiten")
-    st.caption("Entwicklung deiner Bestzeiten für eine konkrete Strecke, ein Layout und ein Fahrzeug.")
+    st.subheader("Analyse")
+    st.caption("Fortschritt, persönliche Bestzeiten und Aktivität auf Basis deiner gespeicherten Renndaten.")
+
+    st.markdown("### Fortschritt der Rundenzeiten")
 
     def rundenzeit_in_sekunden(zeit):
         """GT7-Zeitformate wie 1:49,932 oder 0:01:49,932 robust in Sekunden umwandeln."""
@@ -506,7 +508,7 @@ with tab2:
         st.info("Für eine Fortschrittsauswertung sind noch keine passenden Renndaten vorhanden.")
     else:
         # Kontext aus dem Reiter "Rennstrecken" übernehmen:
-        # Wird dort eine andere Strecke gewählt, startet "Fortschritt" automatisch mit dieser Strecke.
+        # Wird dort eine andere Strecke gewählt, startet "Analyse" automatisch mit dieser Strecke.
         kontext_strecke = st.session_state.get("ausgewählte_strecke")
         letzter_kontext = st.session_state.get("_fortschritt_context_strecke")
 
@@ -729,6 +731,154 @@ with tab2:
                     use_container_width=True,
                     hide_index=True
                 )
+
+
+    st.divider()
+    st.markdown("### Persönliche Bestzeiten – Gesamtübersicht")
+    st.caption("Beste gespeicherte Rundenzeit je Layout und Fahrzeug.")
+
+    analyse_daten = df_zeiten.copy()
+    analyse_daten["Track Layout"] = analyse_daten["Track Layout"].astype(str).str.strip()
+    analyse_daten["Best Lap (s)"] = analyse_daten["Best Lap"].apply(rundenzeit_in_sekunden)
+    analyse_daten["Race_Date_dt"] = pd.to_datetime(
+        analyse_daten["Race_Date"],
+        format="%d.%m.%Y",
+        errors="coerce"
+    )
+    analyse_daten = analyse_daten.dropna(
+        subset=["Track Layout", "Auto", "Best Lap (s)", "Race_Date_dt"]
+    ).copy()
+
+    if analyse_daten.empty:
+        st.info("Für die Gesamtanalyse sind noch keine gültigen Rundenzeiten vorhanden.")
+    else:
+        # Je Layout/Fahrzeug die Zeile mit der schnellsten gespeicherten Runde ermitteln.
+        pb_indices = analyse_daten.groupby(
+            ["Track Layout", "Auto"]
+        )["Best Lap (s)"].idxmin()
+
+        pb_gesamt = analyse_daten.loc[
+            pb_indices,
+            ["Track Layout", "Auto", "Best Lap (s)", "Race_Date_dt"]
+        ].copy()
+
+        layout_zu_strecke = (
+            df_layouts[["Track Layout", "Streckenname"]]
+            .dropna()
+            .copy()
+        )
+        layout_zu_strecke["Track Layout"] = (
+            layout_zu_strecke["Track Layout"].astype(str).str.strip()
+        )
+
+        pb_gesamt = pb_gesamt.merge(
+            layout_zu_strecke,
+            on="Track Layout",
+            how="left"
+        )
+
+        rennen_anzahl = (
+            analyse_daten.groupby(["Track Layout", "Auto"])
+            .size()
+            .rename("Rennen")
+            .reset_index()
+        )
+        pb_gesamt = pb_gesamt.merge(
+            rennen_anzahl,
+            on=["Track Layout", "Auto"],
+            how="left"
+        )
+
+        pb_gesamt["Bestzeit"] = pb_gesamt["Best Lap (s)"].apply(sekunden_als_rundenzeit)
+        pb_gesamt["Datum"] = pb_gesamt["Race_Date_dt"].dt.strftime("%d.%m.%Y")
+        pb_gesamt = pb_gesamt.sort_values(
+            ["Streckenname", "Track Layout", "Auto"],
+            na_position="last"
+        )
+
+        st.dataframe(
+            pb_gesamt[
+                ["Streckenname", "Track Layout", "Auto", "Bestzeit", "Datum", "Rennen"]
+            ].rename(
+                columns={
+                    "Streckenname": "Strecke",
+                    "Track Layout": "Layout",
+                    "Auto": "Fahrzeug"
+                }
+            ),
+            use_container_width=True,
+            hide_index=True
+        )
+
+        st.markdown("### Aktivität")
+        st.caption("Anzahl gespeicherter Rennen pro Monat.")
+
+        aktivitaet = analyse_daten.copy()
+        aktivitaet["Monat_dt"] = aktivitaet["Race_Date_dt"].dt.to_period("M").dt.to_timestamp()
+        aktivitaet_monat = (
+            aktivitaet.groupby("Monat_dt")
+            .size()
+            .rename("Rennen")
+            .reset_index()
+            .sort_values("Monat_dt")
+        )
+        aktivitaet_monat["Monat"] = aktivitaet_monat["Monat_dt"].dt.strftime("%m/%Y")
+
+        aktivitaets_chart = (
+            alt.Chart(aktivitaet_monat)
+            .mark_bar(color="#18C7AD")
+            .encode(
+                x=alt.X(
+                    "Monat:N",
+                    title="Monat",
+                    sort=aktivitaet_monat["Monat"].tolist(),
+                    axis=alt.Axis(labelAngle=-45)
+                ),
+                y=alt.Y("Rennen:Q", title="Rennen"),
+                tooltip=[
+                    alt.Tooltip("Monat:N", title="Monat"),
+                    alt.Tooltip("Rennen:Q", title="Rennen")
+                ]
+            )
+            .properties(height=300)
+            .configure(background="#131B21")
+            .configure_view(stroke="#263842")
+            .configure_axis(
+                labelColor="#8E9AA4",
+                titleColor="#F2F2F2",
+                gridColor="#263842",
+                domainColor="#263842",
+                tickColor="#263842"
+            )
+        )
+        st.altair_chart(aktivitaets_chart, use_container_width=True)
+
+        st.markdown("### Meistgefahrene Kombinationen")
+        st.caption("Strecke, Layout und Fahrzeug mit den meisten gespeicherten Rennen.")
+
+        top_kombinationen = (
+            analyse_daten.groupby(["Track Layout", "Auto"])
+            .size()
+            .rename("Rennen")
+            .reset_index()
+            .merge(layout_zu_strecke, on="Track Layout", how="left")
+            .sort_values("Rennen", ascending=False)
+            .head(10)
+        )
+
+        st.dataframe(
+            top_kombinationen[
+                ["Streckenname", "Track Layout", "Auto", "Rennen"]
+            ].rename(
+                columns={
+                    "Streckenname": "Strecke",
+                    "Track Layout": "Layout",
+                    "Auto": "Fahrzeug"
+                }
+            ),
+            use_container_width=True,
+            hide_index=True
+        )
 
 
 # ================================================================================
