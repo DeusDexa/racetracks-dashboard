@@ -315,7 +315,7 @@ with overview_tab:
 
     kpi_cards = [
         {
-            "titel": "PvP-Rennen",
+            "titel": "Online-Rennen",
             "wert": str(pvp_gesamt),
             "detail": "Gesamt",
             "icon": "assets/Checkerflag.png",
